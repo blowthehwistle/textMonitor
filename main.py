@@ -1,6 +1,7 @@
 import tkinter as tk
 import time
 from openpyxl import Workbook, load_workbook
+from datetime import datetime
 
 class ButtonApp:
     def __init__(self, root):
@@ -20,12 +21,10 @@ class ButtonApp:
         ]
 
         self.buttons = []
-        self.start_times = {}
-        self.end_times = {}
-
+        self.button_start_times = {}  # Store button press start times
         self.log_file = "log.xlsx"
-        self.create_log_file()
 
+        self.load_log_file()
         self.create_buttons()
         self.root.bind('<Escape>', self.exit_program)
 
@@ -35,30 +34,30 @@ class ButtonApp:
             button.pack()
             self.buttons.append(button)
 
-    def create_log_file(self):
+    def load_log_file(self):
         try:
             self.log_workbook = load_workbook(self.log_file)
         except FileNotFoundError:
             self.log_workbook = Workbook()
             self.log_workbook.save(self.log_file)
 
-        if "Log" not in self.log_workbook.sheetnames:
-            self.log_sheet = self.log_workbook.create_sheet("Log")
-            self.log_sheet.append(["Button", "Duration"])
-        else:
+        if "Log" in self.log_workbook.sheetnames:
             self.log_sheet = self.log_workbook["Log"]
+        else:
+            self.log_sheet = self.log_workbook.active
+            self.log_sheet.title = "Log"
+            self.log_sheet.append(["Button", "Timestamp", "Duration"])
 
     def on_button_click(self, button_index):
-        if button_index not in self.start_times:
-            self.start_times[button_index] = time.time()
-            self.create_text_window(button_index)
-        else:
-            self.end_times[button_index] = time.time()
-            self.calculate_and_log_duration(button_index)
+        # Record the start time when the button is pressed
+        self.button_start_times[button_index] = time.time()
+
+        # Create and display the text window
+        self.create_text_window(button_index)
 
     def create_text_window(self, button_index):
         text_window = tk.Toplevel(self.root)
-        text_window.title("Text Window")
+        text_window.title(f"Text Window - Button {button_index + 1}")
 
         text_widget = tk.Text(text_window, wrap=tk.WORD, width=60, height=20)
         text_widget.pack()
@@ -66,37 +65,31 @@ class ButtonApp:
         long_text = "긴 텍스트 예시 " * 62  # Approx. 500 Korean characters
         text_widget.insert(tk.END, long_text)
 
+        # Add a close button to the text window
         close_button = tk.Button(text_window, text="Close", command=lambda b=button_index, w=text_window: self.on_text_window_close(b, w))
         close_button.pack()
-
-        self.text_window = text_window
 
     def on_text_window_close(self, button_index, text_window):
         end_time = time.time()
 
-        if button_index in self.start_times:
-            duration = end_time - self.start_times[button_index]
-            self.calculate_and_log_duration(button_index, duration)
+        # Calculate the duration based on the start time and end time
+        start_time = self.button_start_times.get(button_index, 0)
+        duration = end_time - start_time
+
+        # Record the button press in the log
+        self.record_button_press(button_index, start_time, duration)
 
         text_window.destroy()
-        if button_index in self.start_times:
-            del self.start_times[button_index]
-        if button_index in self.end_times:
-            del self.end_times[button_index]
 
-    def calculate_and_log_duration(self, button_index, duration):
+    def record_button_press(self, button_index, start_time, duration):
         button = f"Button {button_index + 1}"
-        self.log_sheet.append([button, duration])
+        timestamp_str = datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')
+
+        self.log_sheet.append([button, timestamp_str, duration])
+
         self.log_workbook.save(self.log_file)
 
     def exit_program(self, event):
-        for i in range(len(self.button_texts)):
-            if i not in self.start_times and i not in self.end_times:
-                button = f"Button {i + 1}"
-                duration = 0
-                self.log_sheet.append([button, duration])
-
-        self.log_workbook.save(self.log_file)
         self.root.quit()
 
 if __name__ == "__main__":
