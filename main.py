@@ -106,16 +106,17 @@ class ButtonApp:
             "스포츠 하이라이트: 짜릿한 경기"
         ]
 
-        # Display news headlines in the text widget
+        # Display news headline in the text widget
         text_widget.insert(tk.END, news_headlines[button_index])
+
+        # Add an author info button to the text window
+        author_info_button = tk.Button(text_window, text="저자 정보",
+                                       command=lambda b=button_index: self.show_author_info(b))
+        author_info_button.pack()
 
         # Add a close button to the text window
         close_button = tk.Button(text_window, text="닫기", command=text_window.destroy)
         close_button.pack()
-
-        # Add an author info button to the text window
-        author_info_button = tk.Button(text_window, text="저자 정보", command=lambda b=button_index: self.show_author_info(b))
-        author_info_button.pack()
 
     def show_author_info(self, button_index):
         author_info_window = tk.Toplevel(self.root)
@@ -130,8 +131,6 @@ class ButtonApp:
         # Record author info button press
         self.record_author_info_press(button_index)
 
-        # Change the brightness of the author info button
-        self.buttons[button_index].config(bg="gray")
 
     def record_author_info_press(self, button_index):
         button = f"버튼 {button_index + 1}"
