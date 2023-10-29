@@ -110,8 +110,7 @@ class ButtonApp:
         text_widget.insert(tk.END, news_headlines[button_index])
 
         # Add an author info button to the text window
-        author_info_button = tk.Button(text_window, text="저자 정보",
-                                       command=lambda b=button_index: self.show_author_info(b))
+        author_info_button = tk.Button(text_window, text="저자 정보", command=lambda b=button_index: self.show_author_info(b))
         author_info_button.pack()
 
         # Add a close button to the text window
@@ -131,6 +130,8 @@ class ButtonApp:
         # Record author info button press
         self.record_author_info_press(button_index)
 
+        # Change the brightness of the author info button
+        self.buttons[button_index].config(bg="gray")
 
     def record_author_info_press(self, button_index):
         button = f"버튼 {button_index + 1}"
