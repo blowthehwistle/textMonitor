@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internet News</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <script src="/static/index.js"></script>
+    <script src="/static/memo.js"></script>
+    
+</head>
+<body>
+    <header>
+        <h1>Internet News</h1>
+    </header>
+        <!-- 추가: 모든 페이지에서 공통으로 사용할 메모 창 -->
+        <div id="memoModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Memo</h2>
+                <textarea id="memoText" rows="4" cols="50"></textarea>
+                <button id="saveMemo">Save</button>
+            </div>
+        </div>
+        <!-- 메모 창 끝 -->
+
+
+    <div class="container">
+        <div class="article">
+            <a href="{{ url_for('article1') }}">
+                <h2>Headline 1</h2>
+            </a>
+            <p>This is the text of the first news article.</p>
+        </div>
+        <div class="article">
+            <a href="{{ url_for('article2') }}">
+                <h2>Headline 2</h2>
+            </a>
+            <p>This is the text of the second news article.</p>
+        </div>
+        <div class="article">
+            <a href="{{ url_for('article3') }}">
+                <h2>Headline 3</h2>
+            </a>
+            <p>This is the text of the first news article.</p>
+        </div>
+        <div class="article">
+            <a href="{{ url_for('article4') }}">
+                <h2>Headline 4</h2>
+            </a>
+            <p>This is the text of the first news article.</p>
+        </div>
+        <div class="article">
+            <a href="{{ url_for('article5') }}">
+                <h2>Headline 5</h2>
+            </a>
+            <p>This is the text of the first news article.</p>
+        </div>
+        <div class="article">
+            <a href="{{ url_for('article6') }}">
+                <h2>Headline 6</h2>
+            </a>
+            <p>This is the text of the first news article.</p>
+        </div>
+        <div class="article">
+            <a href="{{ url_for('article7') }}">
+                <h2>Headline 7</h2>
+            </a>
+            <p>This is the text of the first news article.</p>
+        </div>
+        <div class="article">
+            <a href="{{ url_for('article8') }}">
+                <h2>Headline 8</h2>
+            </a>
+            <p>This is the text of the first news article.</p>
+        </div>
+    </div>
+    <div class="memo-container" id="memoContainer"></div>
+
+
+</body>
+</html>

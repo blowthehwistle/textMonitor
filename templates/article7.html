@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article 7 - Internet News</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <!-- Include article.js -->
+    <script src="/static/article.js"></script>
+    <script>        
+        const articleId="article7";
+        // 현재 시각을 얻기 위해 Date 객체를 생성
+        const startTime = new Date();
+        let authorInfoClicked = false; // Initialize the variable
+        
+</script>
+    <style>
+        /* Additional styles for longer content */
+        .container {
+            padding: 20px;
+        }
+        .article p {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Internet News</h1>
+    </header>
+    <div class="container">
+        <h2>Headline 7</h2>
+        <p>
+            This is the full content of the first news article. It can be longer with multiple paragraphs to demonstrate how the style accommodates a longer article format.
+        </p>
+                <!-- Record visit time when entering the article -->
+        <p>
+            Here's more content for the article. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin consequat dolor eget justo tincidunt, id iaculis turpis tincidunt. Integer nec urna vel nunc tincidunt cursus vel at libero. Fusce vel justo vitae dolor vehicula tempus a ut ante. Maecenas in fringilla libero. Suspendisse eget hendrerit erat. Morbi fermentum sapien in urna convallis bibendum.
+        </p>
+        <p>
+            In commodo massa at feugiat. Maecenas congue tortor ut quam rhoncus, nec eleifend turpis viverra. Nunc varius, metus in euismod tincidunt, dui ex feugiat massa, at scelerisque orci dui vel odio. Nullam mattis odio in metus facilisis, nec efficitur nulla semper. Sed non ex nec libero luctus consectetur. Ut facilisis non justo non bibendum.
+        </p>
+        <p>
+            Vivamus ac nisl in dolor tincidunt suscipit. Sed nec lorem nec sapien posuere facilisis. In suscipit nisi nec mauris auctor, in euismod metus aliquam. Phasellus sit amet libero eget erat varius vestibulum. Praesent varius et metus a tincidunt. Nunc auctor id dolor nec auctor. Nullam efficitur metus vel dolor dictum, non luctus tellus dictum. Sed et varius erat. Nulla vestibulum justo eu orci cursus, eu bibendum urna tristique.
+        </p>
+        
+        <!-- Author Info Button -->
+        <button class="modal-button" onclick="openModal()">저자 정보</button>
+
+        <!-- Author Info Modal -->
+        <div class="modal" id="authorModal">
+            <h3>Author Information</h3>
+            <p>
+                <strong>Name:</strong> John Doe<br>
+                <strong>Occupation:</strong> Journalist<br>
+                <strong>Email:</strong> john.doe@example.com<br>
+            </p>
+            <button class="modal-button" onclick="closeModal()">닫기</button>
+        </div>        
+         <!-- Return to List Button -->
+        <button class="back-button" onclick="showQuestionModal(startTime, articleId, authorInfoClicked)">목록으로 돌아가기</button>
+         <!-- "읽기를 끝내기" 버튼 -->
+        <button class="mark-as-read-button" onclick="ReadingDone(startTime, articleId, authorInfoClicked)">읽기를 끝내기</button>
+    </div>
+
+    <div class="modal" id="questionModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeQuestionModal()">&times;</span>
+            <h3>Question:</h3>
+            <p>What did you think about this article? Please provide your feedback:</p>
+            <textarea id="userAnswer" rows="4" cols="50"></textarea>
+            <button onclick="submitAnswer()">Submit</button>
+        </div>
+    </div>
+
+</body>
+</html>
