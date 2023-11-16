@@ -1,15 +1,13 @@
-from flask import Flask, request, jsonify, render_template, send_file, Response
+from flask import Flask, request, jsonify, render_template, Response, session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import os
 import io
-import csv
 from openpyxl import Workbook
 import pandas as pd
 import sqlite3
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/hwi/Develop/textMontor/data.db' #경로 지정
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db' #경로 지정
 db = SQLAlchemy(app)
 
 # Dictionary to store memos (articleId -> memo)
@@ -37,11 +35,20 @@ class Memo(db.Model):
     content = db.Column(db.String(1000), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    article_id = db.Column(db.String(255), nullable=False)
+    feedback = db.Column(db.String(1000), nullable=False)
 
 # Serve the index.html template
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/preventback')
+def preventback():
+    return render_template('preventback.html')
 
 @app.route('/end')
 def end_page():
@@ -60,28 +67,28 @@ def serve_styles():
 
 @app.route('/article1')
 def article1():
-    return render_template('article1.html')
+    return render_template('/article/article1.html')
 @app.route('/article2')
 def article2():
-    return render_template('article2.html')
+    return render_template('/article/article2.html')
 @app.route('/article3')
 def article3():
-    return render_template('article3.html')
+    return render_template('/article/article3.html')
 @app.route('/article4')
 def article4():
-    return render_template('article4.html')
+    return render_template('/article/article4.html')
 @app.route('/article5')
 def article5():
-    return render_template('article5.html')
+    return render_template('/article/article5.html')
 @app.route('/article6')
 def article6():
-    return render_template('article6.html')
+    return render_template('/article/article6.html')
 @app.route('/article7')
 def article7():
-    return render_template('article7.html')
+    return render_template('/article/article7.html')
 @app.route('/article8')
 def article8():
-    return render_template('article8.html')
+    return render_template('/article/article8.html')
 
 @app.route('/record', methods=['POST'])
 def record():
@@ -164,6 +171,26 @@ def get_all_memos():
     memo_data = [{'articleId': memo.article_id, 'content': memo.content, 'timestamp': memo.timestamp} for memo in all_memos]
 
     return jsonify(memo_data), 200
+#----------------------------------------------
+
+#Feedback 
+@app.route('/submit-feedback', methods=['POST'])
+def submit_feedback():
+    try:
+        data = request.get_json()
+        article_id = data['articleId']
+        feedback_text = data['feedback']
+
+        # Save the feedback to the Feedback table in the database
+        feedback_entry = Feedback(article_id=article_id, feedback=feedback_text)
+        db.session.add(feedback_entry)
+        db.session.commit()
+
+        return redirect(url_for('index'))  # Adjust the endpoint as needed
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500
+
+
 
 
 # Route to export data to Excel
@@ -175,7 +202,7 @@ def export_to_excel():
         cursor = conn.cursor()
 
         # Define the tables you want to export
-        table_names = ['visit', 'memo', 'read_article']  # Replace with your table names
+        table_names = ['visit', 'memo', 'read_article', 'feedback']  # Replace with your table names
 
         # Create an Excel Workbook
         wb = Workbook()

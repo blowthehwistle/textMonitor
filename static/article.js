@@ -1,5 +1,16 @@
 // article.js
 
+document.addEventListener("DOMContentLoaded", function() {
+
+    window.history.pushState(null, '', location.href);
+
+    window.onpopstate = () => {
+    history.go(1);
+    this.handleGoback();
+};
+
+});
+
 function sendData(articleId, startTime, endTime) {
     const _duration = endTime.getTime() - startTime.getTime();
     const fstartTime = startTime.toISOString(); // ISO 8601 포맷으로 변환
@@ -77,15 +88,35 @@ function ReadingDone(startTime, articleId) {
   
 }
 
-// Function to submit the user's answer
 function submitAnswer() {
-    // Get the user's answer from the textarea
-    const userAnswer = document.getElementById('userAnswer').value;
+    // Get the user's feedback
+    const feedback = document.getElementById('userAnswer').value;
 
-    // You can send the user's answer to the server or perform any other desired action here
-    // For now, we'll just close the modal
-    window.location.href = '/'; // Redirect to index.html
+    // Create a data object to send to the server
+    const data = {
+        articleId: articleId, // Assuming articleId is defined globally
+        feedback: feedback
+    };
+
+    // Send a POST request to the server
+    fetch('/submit-feedback', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log(result.message); // Log the server's response
+        window.location.href = '/'; // Redirect to index.html
+
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 }
+
 
 function openModal() {
     authorInfoClicked = true;

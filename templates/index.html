@@ -7,76 +7,96 @@
     <link rel="stylesheet" type="text/css" href="/static/styles.css">
     <script src="/static/index.js"></script>
     <script src="/static/memo.js"></script>
-    
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            max-width: 1500px;  /*기사 정렬 부분 가로 폭 조정*/
+            width:100%;
+            margin-top: 20px;
+        }
+
+        .article {
+            width: 48%; /* 각 article의 너비 조절 */
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            border: 1px solid #ddd; /* 테두리 추가 */
+            padding: 10px; /* 안쪽 여백 추가 */
+        }
+    </style>
 </head>
 <body>
     <header>
         <h1>Internet News</h1>
     </header>
-        <!-- 추가: 모든 페이지에서 공통으로 사용할 메모 창 -->
-        <div id="memoModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Memo</h2>
-                <textarea id="memoText" rows="4" cols="50"></textarea>
-                <button id="saveMemo">Save</button>
-            </div>
+    <!-- 추가: 모든 페이지에서 공통으로 사용할 메모 창 -->
+    <div id="memoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Memo</h2>
+            <textarea id="memoText" rows="4" cols="50"></textarea>
+            <button id="saveMemo">Save</button>
         </div>
-        <!-- 메모 창 끝 -->
-
+    </div>
+    <!-- 메모 창 끝 -->
 
     <div class="container">
         <div class="article">
             <a href="{{ url_for('article1') }}">
-                <h2>Headline 1</h2>
+                <h2>헤드라인 1</h2>
             </a>
-            <p>This is the text of the first news article.</p>
+            <p>첫번째 글 요약 부분</p>
         </div>
         <div class="article">
             <a href="{{ url_for('article2') }}">
-                <h2>Headline 2</h2>
+                <h2>헤드라인2</h2>
             </a>
-            <p>This is the text of the second news article.</p>
+            <p>두번째 글 요약 부분</p>
         </div>
         <div class="article">
             <a href="{{ url_for('article3') }}">
-                <h2>Headline 3</h2>
+                <h2>헤드라인 3</h2>
             </a>
-            <p>This is the text of the first news article.</p>
+            <p>세번째 글 요약 부분.</p>
         </div>
         <div class="article">
             <a href="{{ url_for('article4') }}">
-                <h2>Headline 4</h2>
+                <h2>헤드라인 4</h2>
             </a>
-            <p>This is the text of the first news article.</p>
+            <p>네번째 글 요약 부분.</p>
         </div>
         <div class="article">
             <a href="{{ url_for('article5') }}">
-                <h2>Headline 5</h2>
+                <h2>헤드라인 5</h2>
             </a>
-            <p>This is the text of the first news article.</p>
+            <p>5번째 글 요약 부분.</p>
         </div>
         <div class="article">
             <a href="{{ url_for('article6') }}">
-                <h2>Headline 6</h2>
+                <h2>헤드라인 6</h2>
             </a>
-            <p>This is the text of the first news article.</p>
+            <p>6번째 글 요약 부분.</p>
         </div>
         <div class="article">
             <a href="{{ url_for('article7') }}">
-                <h2>Headline 7</h2>
+                <h2>헤드라인 7</h2>
             </a>
-            <p>This is the text of the first news article.</p>
+            <p>7번째 글 요약 부분.</p>
         </div>
         <div class="article">
             <a href="{{ url_for('article8') }}">
-                <h2>Headline 8</h2>
+                <h2>헤드라인 8</h2>
             </a>
-            <p>This is the text of the first news article.</p>
+            <p>8번째 글 요약 부분.</p>
         </div>
     </div>
     <div class="memo-container" id="memoContainer"></div>
-
-
 </body>
 </html>
