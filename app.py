@@ -59,6 +59,10 @@ class Feedback(db.Model):
 
 # Serve the index.html template
 @app.route('/')
+def home():
+    return redirect(url_for('login')) 
+
+@app.route('/index')
 def index():
     return render_template('index.html')
 

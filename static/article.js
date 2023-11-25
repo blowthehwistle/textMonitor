@@ -1,14 +1,8 @@
 // article.js
 
-document.addEventListener("DOMContentLoaded", function() {
-
-    window.history.pushState(null, '', location.href);
-
-    window.onpopstate = () => {
-    history.go(1);
-    this.handleGoback();
-};
-
+window.addEventListener("beforeunload", function(event) {
+    const endTime = new Date();
+    sendData(articleId, startTime, endTime);
 });
 
 function sendData(articleId, startTime, endTime) {
@@ -108,7 +102,7 @@ function submitAnswer() {
     })
     .then(result => {
         console.log("Redirecting..."); // Log before redirecting
-        window.location.href = '/'; // Redirect to index.html
+        window.location.href = '/index'; // Redirect to index.html
     })
     .catch(error => {
         console.error('Error:', error);

@@ -1,3 +1,11 @@
+window.addEventListener('popstate', function(event) {
+    // 뒤로 가기 이벤트를 취소합니다.
+    history.pushState(null, null, location.href);
+
+    // 경고 메시지를 표시합니다.
+    alert('뒤로 가기는 사용할 수 없습니다.');
+}, false);
+
 // Function to shuffle an array randomly
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
