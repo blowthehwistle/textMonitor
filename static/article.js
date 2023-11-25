@@ -1,10 +1,14 @@
 // article.js
 
-window.addEventListener("beforeunload", function(event) {
-    const endTime = new Date();
-    sendData(articleId, startTime, endTime);
-});
+let dataSent = false;
 
+window.addEventListener("beforeunload", function(event) {
+    if (!dataSent) {
+        const endTime = new Date();
+        sendData(articleId, startTime, endTime);
+        markAsRead(articleId, authorInfoClicked);
+    }
+});
 function sendData(articleId, startTime, endTime) {
     const _duration = endTime.getTime() - startTime.getTime();
     const fstartTime = startTime.toISOString(); // ISO 8601 포맷으로 변환
@@ -65,6 +69,7 @@ function showQuestionModal(startTime, articleId, authorInfoClicked) {
     const modal = document.getElementById('questionModal');
     modal.style.display = 'block';
     sendData(articleId, startTime, endTime);
+    dataSent = true;
     markAsRead(articleId,authorInfoClicked);
 }
 
