@@ -106,16 +106,14 @@ function submitAnswer() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
     .then(result => {
-        console.log(result.message); // Log the server's response
+        console.log("Redirecting..."); // Log before redirecting
         window.location.href = '/'; // Redirect to index.html
-
     })
     .catch(error => {
         console.error('Error:', error);
     });
-}
+}    
 
 
 function openModal() {

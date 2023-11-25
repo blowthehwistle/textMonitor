@@ -30,12 +30,66 @@
             border: 1px solid #ddd; /* 테두리 추가 */
             padding: 10px; /* 안쪽 여백 추가 */
         }
+
+        header {
+            width: 100%;
+            position: fixed;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 50px;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        /* Pretty buttons in header */
+        header a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        header div {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between items */
+        }
+
+        header a:hover {
+            background-color: #555;
+        }
+
+        /* Single-line text */
+        .container p {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Margin to prevent content from being hidden */
+        .container {
+            margin-top: 70px;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Internet News</h1>
+        <div>
+            {% if session['user_name'] %}
+                <p>{{ session['user_name'] }}님 환영합니다!</p>
+                <a href="{{ url_for('end_page') }}">제출하기</a>  <!-- Change the text and link of the button -->
+            {% else %}
+                <a href="{{ url_for('login') }}">로그인</a>
+            {% endif %}
+        </div>
     </header>
+    
     <!-- 추가: 모든 페이지에서 공통으로 사용할 메모 창 -->
     <div id="memoModal" class="modal">
         <div class="modal-content">
@@ -49,49 +103,49 @@
 
     <div class="container">
         <div class="article">
-            <a href="{{ url_for('article1') }}">
+            <a href="{{ url_for('article', article_num=1) }}">
                 <h2>헤드라인 1</h2>
             </a>
             <p>첫번째 글 요약 부분</p>
         </div>
         <div class="article">
-            <a href="{{ url_for('article2') }}">
+            <a href="{{ url_for('article', article_num=2) }}">
                 <h2>헤드라인2</h2>
             </a>
             <p>두번째 글 요약 부분</p>
         </div>
         <div class="article">
-            <a href="{{ url_for('article3') }}">
+            <a href="{{ url_for('article', article_num=3) }}">
                 <h2>헤드라인 3</h2>
             </a>
             <p>세번째 글 요약 부분.</p>
         </div>
         <div class="article">
-            <a href="{{ url_for('article4') }}">
+            <a href="{{ url_for('article', article_num=4) }}">
                 <h2>헤드라인 4</h2>
             </a>
             <p>네번째 글 요약 부분.</p>
         </div>
         <div class="article">
-            <a href="{{ url_for('article5') }}">
+            <a href="{{ url_for('article', article_num=5) }}">
                 <h2>헤드라인 5</h2>
             </a>
             <p>5번째 글 요약 부분.</p>
         </div>
         <div class="article">
-            <a href="{{ url_for('article6') }}">
+            <a href="{{ url_for('article', article_num=6) }}">
                 <h2>헤드라인 6</h2>
             </a>
             <p>6번째 글 요약 부분.</p>
         </div>
         <div class="article">
-            <a href="{{ url_for('article7') }}">
+            <a href="{{ url_for('article', article_num=7) }}">
                 <h2>헤드라인 7</h2>
             </a>
             <p>7번째 글 요약 부분.</p>
         </div>
         <div class="article">
-            <a href="{{ url_for('article8') }}">
+            <a href="{{ url_for('article', article_num=8) }}">
                 <h2>헤드라인 8</h2>
             </a>
             <p>8번째 글 요약 부분.</p>
