@@ -116,3 +116,17 @@ header {
     font-weight: bold; /* Example style change for visited articles */
 }
 
+
+.article-header {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .article-content {
+    display: none;
+  }
+  
+  .article:hover .article-content {
+    display: block;
+  }
+  

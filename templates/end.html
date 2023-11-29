@@ -10,6 +10,35 @@
     <header>
         <h1>End Page</h1>
     </header>
+
+    <form action="/rate" method="post">
+        {% for article in articles %}
+        <div class="article">
+          <div class="article-header">
+            <h3 class="article-title">{{ article.title }}</h3>
+            <div class="rating-section">
+              <input type="hidden" name="article_id_{{ article.id }}" value="{{ article.id }}">
+              <label for="rating_{{ article.id }}">별점:</label>
+              <select name="rating_{{ article.id }}" id="rating_{{ article.id }}">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+          <div class="article-content">
+            <p>{{ article.content }}</p>
+          </div>
+        </div>
+        {% endfor %}
+        <input type="submit" value="제출">
+      </form>
+      
+    
+
+
     <div class="container">
         <h2>Visit History</h2>
         <table>

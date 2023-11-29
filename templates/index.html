@@ -7,6 +7,13 @@
     <link rel="stylesheet" type="text/css" href="/static/styles.css">
     <script src="/static/index.js"></script>
     <script src="/static/memo.js"></script>
+    <script>
+        function confirmRefresh() {
+            if (confirm("정말 초기화를 진행하시겠습니까?")) {
+                window.location.href = "{{ url_for('refresh') }}";
+            }
+        }
+    </script>
     <style>
         body {
             display: flex;
@@ -78,15 +85,27 @@
     </style>
 </head>
 <body>
+        <!-- Display flash messages -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="alert alert-success">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+    {% endwith %}
     <header>
         <h1>Internet News</h1>
         <div>
             {% if session['user_name'] %}
-                <p>{{ session['user_name'] }}님 환영합니다!</p>
-                <a href="{{ url_for('end_page') }}">제출하기</a>  <!-- Change the text and link of the button -->
-            {% else %}
-                <a href="{{ url_for('login') }}">로그인</a>
+            <p>{{ session['user_name'] }}님 환영합니다!</p>
+            <a href="{{ url_for('end_page') }}">제출하기</a>  <!-- Change the text and link of the button -->
+            {% if session['user_name'] == 'admin' %}
+                <a href="{{ url_for('edit_article') }}">기사 편집</a>
+                <button onclick="confirmRefresh()">초기화</button>
             {% endif %}
+        {% else %}
+            <a href="{{ url_for('login') }}">로그인</a>
+        {% endif %}
         </div>
     </header>
     
@@ -101,56 +120,21 @@
     </div>
     <!-- 메모 창 끝 -->
 
+    <!-- 기타 코드 생략 -->
+
     <div class="container">
-        <div class="article">
-            <a href="{{ url_for('article', article_num=1) }}">
-                <h2>헤드라인 1</h2>
-            </a>
-            <p>첫번째 글 요약 부분</p>
-        </div>
-        <div class="article">
-            <a href="{{ url_for('article', article_num=2) }}">
-                <h2>헤드라인2</h2>
-            </a>
-            <p>두번째 글 요약 부분</p>
-        </div>
-        <div class="article">
-            <a href="{{ url_for('article', article_num=3) }}">
-                <h2>헤드라인 3</h2>
-            </a>
-            <p>세번째 글 요약 부분.</p>
-        </div>
-        <div class="article">
-            <a href="{{ url_for('article', article_num=4) }}">
-                <h2>헤드라인 4</h2>
-            </a>
-            <p>네번째 글 요약 부분.</p>
-        </div>
-        <div class="article">
-            <a href="{{ url_for('article', article_num=5) }}">
-                <h2>헤드라인 5</h2>
-            </a>
-            <p>5번째 글 요약 부분.</p>
-        </div>
-        <div class="article">
-            <a href="{{ url_for('article', article_num=6) }}">
-                <h2>헤드라인 6</h2>
-            </a>
-            <p>6번째 글 요약 부분.</p>
-        </div>
-        <div class="article">
-            <a href="{{ url_for('article', article_num=7) }}">
-                <h2>헤드라인 7</h2>
-            </a>
-            <p>7번째 글 요약 부분.</p>
-        </div>
-        <div class="article">
-            <a href="{{ url_for('article', article_num=8) }}">
-                <h2>헤드라인 8</h2>
-            </a>
-            <p>8번째 글 요약 부분.</p>
-        </div>
+        {% for article in articles %}
+            <div class="article">
+                <a href="{{ url_for('article', article_id=article.id) }}">
+                    <h2>{{ article.title }}</h2>
+                </a>
+                <p>{{ article.content.split('.')[0] }}</p>
+            </div>
+        {% endfor %}
     </div>
+
+<!-- 기타 코드 생략 -->
+
     <div class="memo-container" id="memoContainer"></div>
 </body>
 </html>

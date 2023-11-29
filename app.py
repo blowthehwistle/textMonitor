@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify, render_template, Response, session, redirect, url_for
+from flask import Flask, flash, request, jsonify, render_template, Response, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import ForeignKey
 from flask_migrate import Migrate
 from datetime import datetime
 import io
@@ -7,8 +8,12 @@ from openpyxl import Workbook
 import pandas as pd
 import sqlite3
 import os
+import traceback
+
+
 
 app = Flask(__name__, instance_relative_config=True)
+
 
 # 경로 지정
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'data.db')
@@ -20,10 +25,24 @@ migrate = Migrate(app, db)  # add this line
 # Dictionary to store memos (articleId -> memo)
 memos = {}
 
+class Article(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    ratings = db.relationship('Rating', backref='article', lazy=True)
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
+
+class Rating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String, nullable=False)  
+    article_id = db.Column(db.Integer, db.ForeignKey('article.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+
 
 
 class Visit(db.Model):
@@ -64,7 +83,8 @@ def home():
 
 @app.route('/index')
 def index():
-    return render_template('index.html')
+    articles = Article.query.all()  # 모든 기사를 조회
+    return render_template('index.html', articles=articles)  # `articles` 변수를 템플릿에 전달
 
 
 @app.route('/preventback')
@@ -79,8 +99,9 @@ def end_page():
 
     # ReadArticle 테이블에서 읽은 기사를 가져옵니다.
     read_articles = ReadArticle.query.filter_by(user_id=session['user_id']).all()
+    articles = Article.query.all()
 
-    return render_template('end.html', visit_history=visit_history, read_articles=read_articles)
+    return render_template('end.html', visit_history=visit_history, read_articles=read_articles, articles=articles)
 
 
 # Serve the styles.css file as a static file
@@ -144,10 +165,29 @@ def login_required(f):
     return decorated_function
 
 
-@app.route('/article<int:article_num>')
-def article(article_num):
-    return render_template(f'/article/article{article_num}.html')
 
+
+@app.route('/article/<int:article_id>')
+def article(article_id):
+    article = Article.query.get_or_404(article_id)
+    return render_template('/article/article.html', article=article)
+
+@app.route('/edit_article', methods=['GET', 'POST'], defaults={'article_id': None})
+@app.route('/edit_article/<int:article_id>', methods=['GET', 'POST'])
+def edit_article(article_id):
+    articles = Article.query.all()  # 모든 기사를 조회
+    article = db.session.query(Article).get(article_id) if article_id else None  # 선택한 기사를 조회
+
+    if request.method == 'POST':
+        # 제목과 내용을 수정하고 저장
+        article.title = request.form.get('title')
+        article.content = request.form.get('content')
+        db.session.commit()
+
+        # 수정이 완료되면 기사 목록 페이지로 리다이렉트
+        return redirect(url_for('index'))
+
+    return render_template('edit_article.html', articles=articles, article=article)
 
 @app.route('/record', methods=['POST'])
  
@@ -264,6 +304,33 @@ def submit_feedback():
         return jsonify({'message': str(e)}), 500
 
 
+@app.route('/rate', methods=['POST'])
+def rate_article():
+    try:
+        all_article_ids = [article.article_id for article in Rating.query.with_entities(Rating.article_id).all()]
+        session_id = request.cookies.get('session_id')  # 또는 다른 방법으로 세션 ID를 가져옵니다.
+
+        for article_id in all_article_ids:
+            rating = request.form.get('rating_{}'.format(article_id))
+
+            if rating is None:
+                continue
+
+            existing_rating = Rating.query.filter_by(article_id=article_id, session_id=session_id).first()
+
+            if existing_rating is None:
+                new_rating = Rating(article_id=article_id, rating=rating, session_id=session_id)
+                db.session.add(new_rating)
+            else:
+                existing_rating.rating = rating
+
+        db.session.commit()
+
+        return redirect(url_for('end_page'))
+    except Exception as e:
+        return traceback.format_exc()
+
+
 @app.route('/export-to-excel')
 def export_to_excel():
     try:
@@ -273,28 +340,48 @@ def export_to_excel():
         cursor = conn.cursor()
 
         # Define the tables you want to export
-        table_names = ['visit', 'memo', 'read_article', 'feedback']  # Replace with your table names
-
-        # Create an Excel Workbook
-        wb = Workbook()
-        wb.save('output.xlsx')
+        table_names = ['visit', 'memo', 'read_article', 'feedback', ] 
 
         # Get unique user_ids and usernames
         users = db.session.query(User.id, User.username).distinct().all()
 
+        # Create an Excel writer
+        writer = pd.ExcelWriter('output.xlsx', engine='openpyxl')
+
         for user_id, username in users:
+            # Create a sheet for the user
+            writer.book.create_sheet(username)
+
+            start_row = 0
+            has_data = False  # To check if the user has any data
+
             for table_name in table_names:
                 # Execute a query to retrieve data from your database
                 cursor.execute(f'SELECT * FROM {table_name} WHERE user_id = ?', (user_id,))
                 data = cursor.fetchall()
 
-                # Create a DataFrame from the retrieved data
-                df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
+                # Check if data is not empty
+                if data:
+                    has_data = True  # User has data
 
-                # Create an Excel writer for the current table
-                writer = pd.ExcelWriter('output.xlsx', engine='openpyxl', mode='a')
-                df.to_excel(writer, sheet_name=f'{table_name}_{username}', index=False)
-                writer.close()  # Close the ExcelWriter object
+                    # Create a DataFrame from the retrieved data
+                    df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
+
+                    # Write table name above the table data
+                    writer.sheets[username].cell(row=start_row + 1, column=1, value=table_name)
+
+                    # Write DataFrame to Excel with specified startrow
+                    df.to_excel(writer, sheet_name=username, startrow=start_row + 1, index=False)  # startrow is now start_row + 2
+
+                    # Update start_row for next table
+                    start_row += df.shape[0] + 3  # Leave a blank row between tables and the table name
+
+            # If the user has no data, remove the created sheet
+            if not has_data and username in writer.sheets:
+                del writer.sheets[username]
+
+        # Close the ExcelWriter object
+        writer.close()
 
         # Create an in-memory buffer to save the Excel file
         output = io.BytesIO()
@@ -310,8 +397,60 @@ def export_to_excel():
         return response
 
     except Exception as e:
+        return traceback.format_exc()
+
+
+
+
+
+@app.route('/refresh', methods=['GET', 'POST'])
+def refresh():
+    try:
+        # Connect to your SQLite database
+        db_path = os.path.join(app.instance_path, 'data.db')
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Define the tables you want to clear
+        table_names = ['visit', 'memo', 'read_article', 'feedback']
+
+        for table_name in table_names:
+            # Execute a query to delete all data from the table
+            cursor.execute(f'DELETE FROM {table_name}')
+
+        # For 'user' table, delete all users except 'admin'
+        cursor.execute("DELETE FROM user WHERE username != 'admin'")
+
+        # Commit the changes
+        conn.commit()
+
+        # Remove the existing 'output.xlsx' file if it exists
+        if os.path.exists('output.xlsx'):
+            os.remove('output.xlsx')
+
+        # Create a new 'output.xlsx' file
+        with pd.ExcelWriter('output.xlsx', engine='openpyxl') as writer:
+            # Add a blank sheet
+            df = pd.DataFrame()
+            df.to_excel(writer, sheet_name='Sheet1')
+        # Send a one-time message
+        flash("초기화가 성공적으로 완료되었습니다.")
+
+        # Redirect to the index page
+        return redirect(url_for('index'))
+
+    except Exception as e:
         return str(e)
 
+
+
+@app.cli.command("create_articles")
+def create_articles():
+    for i in range(1, 9):
+        new_article = Article(title=f'제목{i}', content=f'내용{i}')
+        db.session.add(new_article)
+    db.session.commit()
+    print("Articles created successfully.")
 
 
 

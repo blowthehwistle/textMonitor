@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Article</title>
+</head>
+<body>
+    <h1>Edit Article</h1>
+
+    <!-- 추가: 기사 선택 목록 -->
+    <div>
+        <h2>Select an article to edit:</h2>
+        {% for article in articles %}
+            <div>
+                <a href="{{ url_for('edit_article', article_id=article.id) }}">
+                    <h3>{{ article.title }}</h3>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if article %}
+        <form action="" method="post">
+            <label for="title">Title:</label><br>
+            <input type="text" id="title" name="title" value="{{ article.title }}"><br>
+            <label for="content">Content:</label><br>
+            <textarea id="content" name="content">{{ article.content }}</textarea><br>
+            <input type="submit" value="Submit">
+        </form>
+    {% endif %}
+</body>
+</html>

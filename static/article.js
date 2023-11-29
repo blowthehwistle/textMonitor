@@ -3,12 +3,13 @@
 let dataSent = false;
 
 window.addEventListener("beforeunload", function(event) {
-    if (!dataSent) {
+    if (!dataSent && !(window.location.href.includes('/end'))) {
         const endTime = new Date();
         sendData(articleId, startTime, endTime);
         markAsRead(articleId, authorInfoClicked);
     }
 });
+
 function sendData(articleId, startTime, endTime) {
     const _duration = endTime.getTime() - startTime.getTime();
     const fstartTime = startTime.toISOString(); // ISO 8601 포맷으로 변환

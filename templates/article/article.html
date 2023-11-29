@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Article 1 - Internet News</title>
+    <title>{{article.title}}</title>
     <link rel="stylesheet" type="text/css" href="/static/styles.css">
     <!-- Include article.js -->
     <script src="/static/article.js"></script>
@@ -35,7 +35,7 @@
     <div class="container">
         <h2>{{ article.title }}</h2>
         <p>
-            {{ article.content }}
+            {{ article.content.replace('\n', '<br>')|safe }}
         </p>
 
         <!-- Author Info Button -->
