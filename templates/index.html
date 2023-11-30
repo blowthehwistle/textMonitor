@@ -101,7 +101,9 @@
             <a href="{{ url_for('end_page') }}">제출하기</a>  <!-- Change the text and link of the button -->
             {% if session['user_name'] == 'admin' %}
                 <a href="{{ url_for('edit_article') }}">기사 편집</a>
+                <a href="{{ url_for('login') }}">로그아웃</a>
                 <button onclick="confirmRefresh()">초기화</button>
+    
             {% endif %}
         {% else %}
             <a href="{{ url_for('login') }}">로그인</a>
