@@ -1,6 +1,6 @@
 from flask import Flask, flash, request, jsonify, render_template, Response, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKeyConstraint
 from flask_migrate import Migrate
 from datetime import datetime
 import io
@@ -9,6 +9,7 @@ import pandas as pd
 import sqlite3
 import os
 import traceback
+import logging
 
 
 
@@ -21,6 +22,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance
 app.config['SECRET_KEY'] = 'your_secret_key'  # 세션을 암호화하기 위한 시크릿 키 설정
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)  # add this line
+
+app.logger.setLevel(logging.INFO)
 
 # Dictionary to store memos (articleId -> memo)
 memos = {}
@@ -39,9 +42,12 @@ class User(db.Model):
 
 class Rating(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    session_id = db.Column(db.String, nullable=False)  
-    article_id = db.Column(db.Integer, db.ForeignKey('article.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_rating_user'), nullable=False)
+    article_id = db.Column(db.Integer, db.ForeignKey('article.id', name='fk_rating_article'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
+
+    user = db.relationship('User', backref=db.backref('ratings', lazy=True))
+
 
 
 
@@ -75,6 +81,12 @@ class Feedback(db.Model):
     article_id = db.Column(db.String(255), nullable=False)
     feedback = db.Column(db.String(1000), nullable=False)
 
+
+
+@app.errorhandler(403)
+def handle_403_error(error):
+    app.logger.error('403 error occurred: %s', error)
+    return '403 error', 403
 
 # Serve the index.html template
 @app.route('/')
@@ -187,11 +199,11 @@ def edit_article(article_id):
         # 수정이 완료되면 기사 목록 페이지로 리다이렉트
         return redirect(url_for('index'))
 
-    return render_template('edit_article.html', articles=articles, article=article)
+    return render_template('/article/edit_article.html', articles=articles, article=article)
 
 @app.route('/record', methods=['POST'])
  
-def record():
+def record():   
     data = request.get_json()
     article_id = data['article_id']
     start_time = data['start_time']
@@ -307,19 +319,20 @@ def submit_feedback():
 @app.route('/rate', methods=['POST'])
 def rate_article():
     try:
-        all_article_ids = [article.article_id for article in Rating.query.with_entities(Rating.article_id).all()]
-        session_id = request.cookies.get('session_id')  # 또는 다른 방법으로 세션 ID를 가져옵니다.
-
+        all_article_ids = [article.id for article in Article.query.with_entities(Article.id).all()]
+        user_id = session['user_id'] 
+        print(all_article_ids)
+        print(user_id)
         for article_id in all_article_ids:
             rating = request.form.get('rating_{}'.format(article_id))
 
             if rating is None:
                 continue
 
-            existing_rating = Rating.query.filter_by(article_id=article_id, session_id=session_id).first()
+            existing_rating = Rating.query.filter_by(article_id=article_id, user_id=user_id).first()
 
             if existing_rating is None:
-                new_rating = Rating(article_id=article_id, rating=rating, session_id=session_id)
+                new_rating = Rating(article_id=article_id, rating=rating, user_id=user_id)
                 db.session.add(new_rating)
             else:
                 existing_rating.rating = rating
@@ -340,7 +353,7 @@ def export_to_excel():
         cursor = conn.cursor()
 
         # Define the tables you want to export
-        table_names = ['visit', 'memo', 'read_article', 'feedback', ] 
+        table_names = ['visit', 'memo', 'read_article', 'feedback', 'rating' ] 
 
         # Get unique user_ids and usernames
         users = db.session.query(User.id, User.username).distinct().all()
@@ -353,6 +366,7 @@ def export_to_excel():
             writer.book.create_sheet(username)
 
             start_row = 0
+            start_col = 1  # 추가: 시작 열 설정
             has_data = False  # To check if the user has any data
 
             for table_name in table_names:
@@ -368,13 +382,21 @@ def export_to_excel():
                     df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
 
                     # Write table name above the table data
-                    writer.sheets[username].cell(row=start_row + 1, column=1, value=table_name)
+                    writer.sheets[username].cell(row=start_row + 1, column=start_col, value=table_name)  # 수정: 시작 열을 고려
 
-                    # Write DataFrame to Excel with specified startrow
-                    df.to_excel(writer, sheet_name=username, startrow=start_row + 1, index=False)  # startrow is now start_row + 2
+                    # Write DataFrame to Excel with specified startrow and startcol
+                    df.to_excel(writer, sheet_name=username, startrow=start_row + 1, startcol=start_col - 1, index=False)  # 수정: 시작 열을 고려
 
                     # Update start_row for next table
                     start_row += df.shape[0] + 3  # Leave a blank row between tables and the table name
+            
+            # 추가: 'article' 테이블 따로 처리
+            cursor.execute('SELECT * FROM article')
+            data = cursor.fetchall()
+            if data:
+                df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
+                writer.sheets[username].cell(row=1, column=10, value='article')  # 시작 열을 10으로 설정
+                df.to_excel(writer, sheet_name=username, startrow=1, startcol=9, index=False)  # 시작 열을 10으로 설정
 
             # If the user has no data, remove the created sheet
             if not has_data and username in writer.sheets:
@@ -403,6 +425,7 @@ def export_to_excel():
 
 
 
+
 @app.route('/refresh', methods=['GET', 'POST'])
 def refresh():
     try:
@@ -412,7 +435,7 @@ def refresh():
         cursor = conn.cursor()
 
         # Define the tables you want to clear
-        table_names = ['visit', 'memo', 'read_article', 'feedback']
+        table_names = ['visit', 'memo', 'read_article', 'feedback', 'rating']
 
         for table_name in table_names:
             # Execute a query to delete all data from the table
@@ -442,6 +465,33 @@ def refresh():
     except Exception as e:
         return str(e)
 
+@app.route('/add_article', methods=['GET', 'POST'])
+def add_article():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        content = request.form.get('content')
+
+        if not title or not content:
+            flash('Title and Content are required!')
+            return render_template('add_article.html')
+
+        article = Article(title=title, content=content)
+        db.session.add(article)
+        db.session.commit()
+
+        return redirect(url_for('edit_article'))
+
+    return render_template('add_article.html')
+
+
+@app.route('/delete_article/<int:article_id>', methods=['POST'])
+def delete_article(article_id):
+    article = Article.query.get_or_404(article_id)
+    db.session.delete(article)
+    db.session.commit()
+
+    return redirect(url_for('edit_article'))
+
 
 
 @app.cli.command("create_articles")
@@ -451,7 +501,6 @@ def create_articles():
         db.session.add(new_article)
     db.session.commit()
     print("Articles created successfully.")
-
 
 
 # Create the database tables within an application context

@@ -82,12 +82,13 @@
         </div>
     </div>
 
+    {% if session['user_name'] == 'admin' %}
     <div class="container">
         <h2>Export Data to Excel</h2>
         <p>Click the button below to export the database contents to an Excel file.</p>
         <a href="/export-to-excel" class="export-button">Export to Excel</a>
     </div>
-
+    {% endif %}
 
 </body>
 </html>

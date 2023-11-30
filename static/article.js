@@ -79,14 +79,6 @@ function closeQuestionModal() {
     questionModal.style.display = 'none';
 }
 
-// Function to readingDone button and redirect to end.html
-function ReadingDone(startTime, articleId) {
-    const endTime = new Date();
-    sendData(articleId, startTime, endTime);
-    markAsRead(articleId, authorInfoClicked);
-    window.location.href = '/end'; // Redirect to end
-  
-}
 
 function submitAnswer() {
     // Get the user's feedback

@@ -7,6 +7,15 @@
 <body>
     <h1>Edit Article</h1>
 
+    <!-- 기사 추가 버튼 -->
+    <form action="{{ url_for('add_article') }}" method="get">
+        <input type="submit" value="기사 추가">
+    </form>
+
+    <form action="{{ url_for('index') }}" method="get">
+        <input type="submit" value="완료">
+    </form>
+
     <!-- 추가: 기사 선택 목록 -->
     <div>
         <h2>Select an article to edit:</h2>
@@ -15,6 +24,10 @@
                 <a href="{{ url_for('edit_article', article_id=article.id) }}">
                     <h3>{{ article.title }}</h3>
                 </a>
+                <!-- 각 기사 옆에 삭제 버튼 추가 -->
+                <form action="{{ url_for('delete_article', article_id=article.id) }}" method="post">
+                    <input type="submit" value="Delete">
+                </form>
             </div>
         {% endfor %}
     </div>

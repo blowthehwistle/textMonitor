@@ -17,7 +17,6 @@ function saveMemo() {
     const memoText = document.getElementById('memoText').value;
     const timestamp = new Date().toISOString(); // Format the timestamp as a string
 
-
     // Send a POST request to save the memo for the current article
     fetch('/save-memo', {
         method: 'POST',
@@ -35,6 +34,12 @@ function saveMemo() {
         if (data.message === 'Memo saved successfully') {
             // Memo saved successfully, clear the memo text box
             document.getElementById('memoText').value = '';
+
+            // Add the new memo to the page
+            const memoContainer = document.getElementById('memoContainer');
+            const memoItem = document.createElement('p');
+            memoItem.textContent = memoText;
+            memoContainer.appendChild(memoItem);
         } else {
             console.error('Failed to save memo.');
         }
@@ -42,9 +47,8 @@ function saveMemo() {
     .catch(error => {
         console.error('Error:', error);
     });
-
-
 }
+
 
 // Function to display all saved memos
 function displayAllMemos() {
