@@ -9,6 +9,11 @@
 <body>
     <header>
         <h1>End Page</h1>
+        <div style="position: fixed; right: 10px; top: 10px;">
+            <form action="{{ url_for('logout') }}" method="post">
+                <input type="submit" value="Logout">
+            </form>
+        </div>
     </header>
 
     <form action="/rate" method="post">
