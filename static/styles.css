@@ -18,15 +18,17 @@ header {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 80%;
     margin: 20px auto;
     padding: 20px;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 70px;
 }
 
 /* Article styles */
 .article {
+    width: 600px; /* 각 article의 너비 조절 */
     border: 1px solid #ddd;
     padding: 10px;
     margin-bottom: 20px;
