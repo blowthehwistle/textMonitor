@@ -31,7 +31,7 @@ header {
     width: 600px; /* 각 article의 너비 조절 */
     border: 1px solid #ddd;
     padding: 10px;
-    margin-bottom: 20px;
+    margin: 10px 0; /* 상하 여백을 10px로 설정, 좌우 여백은 변화 없음 */
     cursor: pointer;
 }
 

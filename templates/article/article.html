@@ -25,12 +25,27 @@
         .article p {
             margin-bottom: 10px;
         }
+        /* '읽기 끝내기' 버튼 스타일 */
+        .end-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            float: right;
+        }
+        .end-button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 
 <body>
     <header>
         <h1>Internet News</h1>
+        <a href="{{ url_for('end_page') }}" class="end-button">읽기 끝내기</a>
     </header>
     <div class="container">
         <h2>{{ article.title }}</h2>
@@ -45,9 +60,10 @@
         <div class="modal" id="authorModal">
             <h3>Author Information</h3>
             <p>
-                <strong>Name:</strong> John Doe<br>
-                <strong>Occupation:</strong> Journalist<br>
-                <strong>Email:</strong> john.doe@example.com<br>
+                <strong>Name:</strong> {{ article.author_name }}<br>
+                <strong>Occupation:</strong> {{ article.author_occupation }}<br>
+                <strong>Email:</strong> {{ article.author_email }}<br>
+                <strong>Description:</strong> {{ article.author_description }}<br>
             </p>
             <button class="modal-button" onclick="closeModal()">닫기</button>
         </div>

@@ -38,6 +38,14 @@
             <input type="text" id="title" name="title" value="{{ article.title }}"><br>
             <label for="content">Content:</label><br>
             <textarea id="content" name="content">{{ article.content }}</textarea><br>
+            <label for="author_name">Author Name:</label><br>
+            <input type="text" id="author_name" name="author_name" value="{{ article.author_name }}"><br>
+            <label for="author_occupation">Author Occupation:</label><br>
+            <input type="text" id="author_occupation" name="author_occupation" value="{{ article.author_occupation }}"><br>
+            <label for="author_email">Author Email:</label><br>
+            <input type="text" id="author_email" name="author_email" value="{{ article.author_email }}"><br>
+            <label for="author_description">Author Description:</label><br>
+            <textarea id="author_description" name="author_description">{{ article.author_description }}</textarea><br>
             <input type="submit" value="Submit">
         </form>
     {% endif %}

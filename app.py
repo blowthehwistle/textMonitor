@@ -30,8 +30,12 @@ memos = {}
 
 class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    author_name = db.Column(db.String(100))  # 저자 이름
+    author_occupation = db.Column(db.String(100))  # 저자 직업
+    author_email = db.Column(db.String(100))  # 저자 이메일
+    author_description = db.Column(db.Text)  # 저자 설명
     ratings = db.relationship('Rating', backref='article', lazy=True)
 
 
@@ -190,15 +194,20 @@ def edit_article(article_id):
     article = db.session.query(Article).get(article_id) if article_id else None  # 선택한 기사를 조회
 
     if request.method == 'POST':
-        # 제목과 내용을 수정하고 저장
+        # 제목, 내용, 저자 정보를 수정하고 저장
         article.title = request.form.get('title')
         article.content = request.form.get('content')
+        article.author_name = request.form.get('author_name')
+        article.author_occupation = request.form.get('author_occupation')
+        article.author_email = request.form.get('author_email')
+        article.author_description = request.form.get('author_description')
         db.session.commit()
 
         # 수정이 완료되면 기사 목록 페이지로 리다이렉트
         return redirect(url_for('index'))
 
     return render_template('/article/edit_article.html', articles=articles, article=article)
+
 
 @app.route('/record', methods=['POST'])
  
@@ -390,10 +399,10 @@ def export_to_excel():
                     start_row += df.shape[0] + 3  # Leave a blank row between tables and the table name
             
             # 추가: 'article' 테이블 따로 처리
-            cursor.execute('SELECT * FROM article')
+            cursor.execute('SELECT id, title, content FROM article')  # 수정: id, title, content 컬럼만 선택
             data = cursor.fetchall()
             if data:
-                df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
+                df = pd.DataFrame(data, columns=['id', 'title', 'content'])  # 수정: 컬럼 이름 지정
                 writer.sheets[username].cell(row=1, column=10, value='article')  # 시작 열을 10으로 설정
                 df.to_excel(writer, sheet_name=username, startrow=1, startcol=9, index=False)  # 시작 열을 10으로 설정
 
