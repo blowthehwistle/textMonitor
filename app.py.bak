@@ -38,6 +38,7 @@ class Article(db.Model):
     author_occupation = db.Column(db.String(100))  # 저자 직업
     author_email = db.Column(db.String(100))  # 저자 이메일
     author_description = db.Column(db.Text)  # 저자 설명
+    display_on_index = db.Column(db.Boolean, default=False)
     ratings = db.relationship('Rating', backref='article', lazy=True)
 
 
@@ -111,19 +112,19 @@ def index():
     # 로그인한 사용자를 가져옵니다.
     user = User.query.get(session['user_id'])
 
-    if user.article_order is None:
-        # Get all article IDs
-        article_ids = [article.id for article in Article.query.all()]
+    # display_on_index가 True인 모든 기사 ID를 가져옵니다.
+    display_article_ids = [article.id for article in Article.query.filter_by(display_on_index=True).all()]
 
-        # Shuffle the article IDs
-        random.shuffle(article_ids)
+    if user.article_order is None or set(user.get_article_order()) != set(display_article_ids):
+        # 기사 ID를 무작위로 섞습니다.
+        random.shuffle(display_article_ids)
 
-        # Store the shuffled article IDs in the user model
-        user.set_article_order(article_ids)
+        # 섞인 기사 ID를 사용자 모델에 저장합니다.
+        user.set_article_order(display_article_ids)
         db.session.commit()
 
-    # Get the articles in the order of the shuffled article IDs
-    articles = [Article.query.get(id) for id in user.get_article_order()]
+    # 사용자의 기사 순서에 따라 기사를 가져옵니다. 이 때, 처음 6개만 가져옵니다.
+    articles = [Article.query.get(id) for id in user.get_article_order()[:6]]
 
     return render_template('index.html', articles=articles)
 
@@ -226,6 +227,7 @@ def edit_article(article_id):
         article.author_occupation = request.form.get('author_occupation')
         article.author_email = request.form.get('author_email')
         article.author_description = request.form.get('author_description')
+        article.display_on_index = 'display_on_index' in request.form
         db.session.commit()
 
         # 수정이 완료되면 기사 목록 페이지로 리다이렉트
@@ -562,5 +564,5 @@ with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(debug=True)
 
