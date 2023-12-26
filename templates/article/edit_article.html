@@ -133,6 +133,8 @@
             <input type="text" id="author_email" name="author_email" value="{{ article.author_email }}"><br>
             <label for="author_description">Author Description:</label><br>
             <textarea id="author_description" name="author_description">{{ article.author_description }}</textarea><br>
+            <label for="display_on_index">Display on index:</label><br>
+            <input type="checkbox" id="display_on_index" name="display_on_index" {% if article.display_on_index %}checked{% endif %}><br>
             <input class="button" type="submit" value="Submit">
         </form>
     {% endif %}
