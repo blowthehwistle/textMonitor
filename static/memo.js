@@ -75,9 +75,12 @@ function displayAllMemos() {
             for (const articleId in memosByArticleId) {
                 const memosForArticle = memosByArticleId[articleId];
 
+                // Get the title of the article from the first memo
+                const articleTitle = memosForArticle[0].title;
+
                 // Create a heading for the article
                 const articleHeading = document.createElement('h3');
-                articleHeading.textContent = `Memos from "${articleId}"`;
+                articleHeading.textContent = `Memos from "${articleTitle}"`; 
                 memoContainer.appendChild(articleHeading);
 
                 // Create a list for memos in this article
@@ -97,6 +100,7 @@ function displayAllMemos() {
 }
 
 
+
 // Initialize the memo display on page load
 displayAllMemos();
 
@@ -104,3 +108,4 @@ displayAllMemos();
 window.onload = function () {
     displayAllMemos();
 };
+

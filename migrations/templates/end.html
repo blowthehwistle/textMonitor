@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>End Page</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>End Page</h1>
+        <div style="position: fixed; right: 10px; top: 10px;">
+            <a href="{{ url_for('login') }}">
+                <button>로그아웃</button>
+            </a>
+        </div>
+    </header>
+
+    <form action="/rate" method="post">
+        {% for article in articles %}
+        <div class="article">
+          <div class="article-header">
+            <h3 class="article-title">{{ article.title }}</h3>
+            <div class="rating-section">
+              <input type="hidden" name="article_id_{{ article.id }}" value="{{ article.id }}">
+              <label for="rating_{{ article.id }}">별점:</label>
+              <select name="rating_{{ article.id }}" id="rating_{{ article.id }}">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+          <div class="article-content">
+            <p>{{ article.content }}</p>
+          </div>
+        </div>
+        {% endfor %}
+        <input type="submit" value="제출">
+      </form>
+      
+    
+
+
+    <div class="container">
+        <h2>Visit History</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Visit ID</th>
+                    <th>Article ID</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Duration (seconds)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visit in visit_history %}
+                    <tr>
+                        <td>{{ visit.id }}</td>
+                        <td>{{ visit.article_id }}</td>
+                        <td>{{ visit.start_time }}</td>
+                        <td>{{ visit.end_time }}</td>
+                        <td>{{ visit.duration }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Read Articles</h2>
+        <ul>
+            {% for article in read_articles %}
+                <li>{{ article.article_id }} (Author Info Clicked: {{ article.authorInfoClicked }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- 모달 창 -->
+    <div id="memoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Memo</h2>
+            <textarea id="memoText" rows="4" cols="50"></textarea>
+            <button id="saveMemo">Save</button>
+        </div>
+    </div>
+
+    {% if session['user_name'] == 'admin' %}
+    <div class="container">
+        <h2>Export Data to Excel</h2>
+        <p>Click the button below to export the database contents to an Excel file.</p>
+        <a href="/export-to-excel" class="export-button">Export to Excel</a>
+    </div>
+    {% endif %}
+
+</body>
+</html>

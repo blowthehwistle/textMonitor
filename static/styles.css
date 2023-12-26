@@ -16,7 +16,6 @@ header {
     padding: 10px;
     text-align: center;
 }
-
 .container {
     max-width: 80%;
     margin: 20px auto;
@@ -24,16 +23,16 @@ header {
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     margin-top: 70px;
-}
-
-/* Article styles */
+    }
+    
+    /* Article styles */
 .article {
-    width: 600px; /* 각 article의 너비 조절 */
+    width: 600px; 
     border: 1px solid #ddd;
     padding: 10px;
-    margin: 10px 0; /* 상하 여백을 10px로 설정, 좌우 여백은 변화 없음 */
+    margin: 10px 0; 
     cursor: pointer;
-}
+    }
 
 .article:hover {
     background-color: #f5f5f5;
@@ -47,6 +46,9 @@ header {
 .article p {
     font-size: 16px;
     margin: 0;
+    text-overflow: ellipsis;  /* 기사의 내용이 너무 길면 '...'로 표시합니다. */
+    white-space: nowrap;  /* 기사의 내용을 한 줄에 표시합니다. */
+    overflow: hidden;  /* 기사의 내용이 너무 길면 잘라냅니다. */
 }
 
 /* Back button */
@@ -95,7 +97,7 @@ header {
 }
 
 .memo-container{
-    max-width: 300px;
+    max-width: 865px;
     margin: 20px auto;
     padding: 20px;
     background-color: #fff;

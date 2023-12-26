@@ -64,7 +64,7 @@
 <body>
     <header>
         <h1>Internet News</h1>
-        <a href="{{ url_for('end_page') }}">읽기 모두 끝내기</a>
+        <a href="{{ url_for('end_page') }}">읽기 끝내기</a>
     </header>
     <div class="container">
         <h2>{{ article.title }}</h2>
@@ -99,7 +99,7 @@
         <div class="modal-content">
             <span class="close" onclick="closeQuestionModal()">&times;</span>
             <h3>Question:</h3>
-            <p>글을 읽고 더 알고 싶은 정보는?(없으면 '없음' 작성):</p>
+            <p>피드백 남기기:</p>
             <textarea id="userAnswer" rows="4" cols="50"></textarea>
             <button onclick="submitAnswer()">Submit</button>
         </div>

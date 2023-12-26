@@ -14,31 +14,9 @@ function shuffleArray(array) {
     }
 }
 
-// Function to display articles in a random order
-function displayRandomArticles() {
-    const container = document.querySelector('.container');
-    if (!container) {
-        console.error('Container element not found.');
-        return;
-    }
-
-    const articles = Array.from(container.querySelectorAll('.article'));
-
-    // Shuffle the articles randomly
-    shuffleArray(articles);
-
-    // Clear the current content
-    container.innerHTML = '';
-
-    // Append the shuffled articles back to the container
-    articles.forEach(article => {
-        container.appendChild(article);
-    });
-}
 
 // Run the function on page load to display articles randomly
 document.addEventListener('DOMContentLoaded', function() {
-    displayRandomArticles();
 
     // Function to fetch data from the server
     function fetchDataFromServer() {
@@ -102,3 +80,4 @@ openModalButton.addEventListener('click', () => {
     memoText.value = ''; // 메모 텍스트 영역 초기화
     displayMemo.style.display = 'none'; // 메모 표시 창 숨김
 });
+
