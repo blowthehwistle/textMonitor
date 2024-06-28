@@ -13,6 +13,7 @@ import logging
 import random
 import json
 import re
+import zipfile
 
 
 app = Flask(__name__, instance_relative_config=True)
@@ -389,6 +390,21 @@ def clean_string(s):
     # Excel doesn't allow characters with ASCII value < 32
     return re.sub(r'[\x00-\x1f]', '', s)
 
+
+import sqlite3
+import pandas as pd
+import os
+import io
+import zipfile
+from flask import Response
+
+import sqlite3
+import pandas as pd
+import os
+import io
+import zipfile
+from flask import Response
+
 @app.route('/export-to-excel')
 def export_to_excel():
     try:
@@ -398,72 +414,48 @@ def export_to_excel():
         cursor = conn.cursor()
 
         # Define the tables you want to export
-        table_names = ['visit', 'memo', 'read_article', 'feedback', 'rating' ] 
+        table_names = ['visit', 'memo', 'read_article', 'feedback', 'rating']
 
         # Get unique user_ids and usernames
         users = db.session.query(User.id, User.username).distinct().all()
 
-        # Create an Excel writer
-        writer = pd.ExcelWriter('output.xlsx', engine='openpyxl')
+        # Create a BytesIO object to store the zip file
+        zip_buffer = io.BytesIO()
 
-        for user_id, username in users:
-            # Create a sheet for the user
-            writer.book.create_sheet(username)
+        # Create a ZipFile object
+        with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED) as zip_file:
+            for user_id, username in users:
+                # Create a BytesIO object to store the Excel file
+                excel_buffer = io.BytesIO()
 
-            start_row = 0
-            start_col = 1  # 추가: 시작 열 설정
-            has_data = False  # To check if the user has any data
+                # Create an Excel writer
+                writer = pd.ExcelWriter(excel_buffer, engine='openpyxl')
 
-            for table_name in table_names:
-                # Execute a query to retrieve data from your database
-                cursor.execute(f'SELECT * FROM {table_name} WHERE user_id = ?', (user_id,))
-                data = cursor.fetchall()
+                # Loop through each table and fetch data for the user
+                has_data = False
+                for table_name in table_names:
+                    cursor.execute(f'SELECT * FROM {table_name} WHERE user_id = ?', (user_id,))
+                    data = cursor.fetchall()
+                    if data:
+                        has_data = True
+                        df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
+                        df = df.applymap(clean_string)
+                        df.to_excel(writer, sheet_name=table_name, index=False)
 
-                # Check if data is not empty
-                if data:
-                    has_data = True  # User has data
+                # Close the Excel writer if the user has data
+                if has_data:
+                    writer.close()
 
-                    # Create a DataFrame from the retrieved data
-                    df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
+                    # Add the Excel file to the ZipFile
+                    excel_buffer.seek(0)
+                    zip_file.writestr(f'{username}.xlsx', excel_buffer.read())
 
-                    # Clean string data
-                    df = df.applymap(clean_string)  # Apply the clean_string function to each element in the DataFrame
-
-                    # Write table name above the table data
-                    writer.sheets[username].cell(row=start_row + 1, column=start_col, value=table_name)  # 수정: 시작 열을 고려
-
-                    # Write DataFrame to Excel with specified startrow and startcol
-                    df.to_excel(writer, sheet_name=username, startrow=start_row + 1, startcol=start_col - 1, index=False)  # 수정: 시작 열을 고려
-
-                    # Update start_row for next table
-                    start_row += df.shape[0] + 3  # Leave a blank row between tables and the table name
-            
-            # 추가: 'article' 테이블 따로 처리
-            cursor.execute('SELECT id, title, content FROM article')  # 수정: id, title, content 컬럼만 선택
-            data = cursor.fetchall()
-            if data:
-                df = pd.DataFrame(data, columns=['id', 'title', 'content'])  # 수정: 컬럼 이름 지정
-                df = df.applymap(clean_string)  # Apply the clean_string function to each element in the DataFrame
-                writer.sheets[username].cell(row=1, column=10, value='article')  # 시작 열을 10으로 설정
-                df.to_excel(writer, sheet_name=username, startrow=1, startcol=9, index=False)  # 시작 열을 10으로 설정
-
-            # If the user has no data, remove the created sheet
-            if not has_data and username in writer.sheets:
-                del writer.sheets[username]
-
-        # Close the ExcelWriter object
-        writer.close()
-
-        # Create an in-memory buffer to save the Excel file
-        output = io.BytesIO()
-        with open('output.xlsx', 'rb') as f:
-            output.write(f.read())
-        output.seek(0)
+        # Close the ZipFile object
+        zip_buffer.seek(0)
 
         # Prepare the response with appropriate headers
-        response = Response(output.read(),
-                            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response.headers['Content-Disposition'] = 'attachment; filename=data.xlsx'
+        response = Response(zip_buffer.read(), content_type='application/zip')
+        response.headers['Content-Disposition'] = 'attachment; filename=data_batched.zip'
 
         return response
 
@@ -473,14 +465,9 @@ def export_to_excel():
 
 def clean_string(s):
     """Removes characters that are not allowed in Excel cells."""
-    # If s is not a string, return it as is
     if not isinstance(s, str):
         return s
-
-    # Excel doesn't allow characters with ASCII value < 32
     return re.sub(r'[\x00-\x1f]', '', s)
-
-
 
 @app.route('/refresh', methods=['GET', 'POST'])
 def refresh():
@@ -565,4 +552,5 @@ with app.app_context():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
+
 

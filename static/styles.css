@@ -127,10 +127,14 @@ header {
   }
   
   .article-content {
-    display: none;
-  }
-  
-  .article:hover .article-content {
     display: block;
-  }
-  
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.article:hover .article-content {
+    max-height: 200px; /* Set the maximum height you want */
+    transition: max-height 0.3s ease-in;
+}
+   
