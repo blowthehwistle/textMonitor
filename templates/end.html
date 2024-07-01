@@ -130,14 +130,21 @@
         </div>
     </div>
 
-    {% if session['user_name'] == 'admin' %}
+    {% if session['user_name'] %}
     <div class="container">
         <h2>Export Data to Excel</h2>
-        <p>Click the button below to export the database contents to an Excel file.</p>
+        <p>Click the button below to export your data to an Excel file.</p>
         <a href="/export-to-excel" class="export-button">Export to Excel</a>
     </div>
     {% endif %}
-
+    
+    {% if session['user_name'] == 'admin' %}
+    <div class="container">
+        <h2>Export All Users' Data to Excel</h2>
+        <p>Click the button below to export all users' data to an Excel file.</p>
+        <a href="/export-all-to-excel" class="export-button">Export All Users' Data</a>
+    </div>
+    {% endif %}
 </body>
 </html>
 

@@ -42,7 +42,6 @@ class Article(db.Model):
     display_on_index = db.Column(db.Boolean, default=False)
     ratings = db.relationship('Rating', backref='article', lazy=True)
 
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False, unique=True)
@@ -63,9 +62,6 @@ class Rating(db.Model):
 
     user = db.relationship('User', backref=db.backref('ratings', lazy=True))
 
-
-
-
 class Visit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_visit_user'), nullable=False)
@@ -73,14 +69,7 @@ class Visit(db.Model):
     start_time = db.Column(db.String(255), nullable=False)
     end_time = db.Column(db.String(255), nullable=False)
     duration = db.Column(db.Integer, nullable=False)
-
-
-class ReadArticle(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_read_article_user'), nullable=False)
-    article_id = db.Column(db.String(255), nullable=False, unique=True)
-    author_info_clicked = db.Column(db.String(255), nullable=False)
-
+    author_info_clicked = db.Column(db.Boolean, default=False)  # 추가된 필드
 
 class Memo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -88,7 +77,6 @@ class Memo(db.Model):
     article_id = db.Column(db.String(255), nullable=False)
     content = db.Column(db.String(1000), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
 
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -139,12 +127,9 @@ def preventback():
 def end_page():
     # Visit 테이블에서 방문 기록을 가져옵니다.
     visit_history = Visit.query.filter_by(user_id=session['user_id']).all()
-
-    # ReadArticle 테이블에서 읽은 기사를 가져옵니다.
-    read_articles = ReadArticle.query.filter_by(user_id=session['user_id']).all()
     articles = Article.query.all()
 
-    return render_template('end.html', visit_history=visit_history, read_articles=read_articles, articles=articles)
+    return render_template('end.html', visit_history=visit_history, articles=articles)
 
 
 # Serve the styles.css file as a static file
@@ -238,57 +223,55 @@ def edit_article(article_id):
 
 
 @app.route('/record', methods=['POST'])
- 
 def record():   
     data = request.get_json()
     article_id = data['article_id']
     start_time = data['start_time']
     end_time = data['end_time']
     duration = data['duration']
+    author_info_clicked = data.get('author_info_clicked', False)
 
-    # duration을 정수로 저장
     visit = Visit(user_id=session['user_id'], article_id=article_id, start_time=start_time, end_time=end_time,
-                  duration=duration)
+                  duration=duration, author_info_clicked=author_info_clicked)
 
     db.session.add(visit)
     db.session.commit()
 
     return jsonify(message='Visit recorded successfully'), 200
 
-
-@app.route('/mark-as-read', methods=['POST'])
+# @app.route('/mark-as-read', methods=['POST'])
  
-def mark_as_read():
-    try:
-        data = request.get_json()
-        article_id = data.get('articleId')
-        new_author_info = data.get('authorInfoClicked')
+# def mark_as_read():
+#     try:
+#         data = request.get_json()
+#         article_id = data.get('articleId')
+#         new_author_info = data.get('authorInfoClicked')
 
-        if not article_id:
-            return jsonify({'message': 'articleId is required'}), 400
+#         if not article_id:
+#             return jsonify({'message': 'articleId is required'}), 400
 
-        # Check if the article has already been marked as read.
-        existing_record = ReadArticle.query.filter_by(user_id=session['user_id'], article_id=article_id).first()
+#         # Check if the article has already been marked as read.
+#         existing_record = ReadArticle.query.filter_by(user_id=session['user_id'], article_id=article_id).first()
 
-        if existing_record:
-            # Compare the existing authorInfoClicked with the new value.
-            if existing_record.author_info_clicked != new_author_info:
-                # Update authorInfoClicked if there is a change.
-                existing_record.author_info_clicked = new_author_info
-                db.session.commit()
+#         if existing_record:
+#             # Compare the existing authorInfoClicked with the new value.
+#             if existing_record.author_info_clicked != new_author_info:
+#                 # Update authorInfoClicked if there is a change.
+#                 existing_record.author_info_clicked = new_author_info
+#                 db.session.commit()
 
-            return jsonify({'message': 'Article already marked as read'}), 200
+#             return jsonify({'message': 'Article already marked as read'}), 200
 
-        # If the article is not marked as read, create a new record.
-        new_read_article = ReadArticle(user_id=session['user_id'], article_id=article_id,
-                                       author_info_clicked=new_author_info)
-        db.session.add(new_read_article)
-        db.session.commit()
+#         # If the article is not marked as read, create a new record.
+#         new_read_article = ReadArticle(user_id=session['user_id'], article_id=article_id,
+#                                        author_info_clicked=new_author_info)
+#         db.session.add(new_read_article)
+#         db.session.commit()
 
-        return jsonify({'message': 'Article marked as read'}), 200
+#         return jsonify({'message': 'Article marked as read'}), 200
 
-    except Exception as e:
-        return jsonify({'message': str(e)}), 500
+#     except Exception as e:
+#         return jsonify({'message': str(e)}), 500
 
 
 # memo ----------------------------------------
@@ -387,54 +370,91 @@ def rate_article():
 
 def clean_string(s):
     """Removes characters that are not allowed in Excel cells."""
-    # Excel doesn't allow characters with ASCII value < 32
+    if not isinstance(s, str):
+        return s
     return re.sub(r'[\x00-\x1f]', '', s)
-
-
-import sqlite3
-import pandas as pd
-import os
-import io
-import zipfile
-from flask import Response
-
-import sqlite3
-import pandas as pd
-import os
-import io
-import zipfile
-from flask import Response
 
 @app.route('/export-to-excel')
 def export_to_excel():
     try:
-        # Connect to your SQLite database
+        if 'user_id' not in session:
+            return "You need to be logged in to export data."
+
         db_path = os.path.join(app.instance_path, 'data.db')
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        # Define the tables you want to export
-        table_names = ['visit', 'memo', 'read_article', 'feedback', 'rating']
+        user_id = session['user_id']
+        username = session['user_name']
 
-        # Get unique user_ids and usernames
+        table_names = ['visit', 'memo', 'feedback', 'rating', 'article']
+
+        excel_buffer = io.BytesIO()
+        writer = pd.ExcelWriter(excel_buffer, engine='openpyxl')
+
+        has_data = False
+        for table_name in table_names:
+            if table_name == 'article':
+                cursor.execute(f'''
+                    SELECT a.*, 
+                           CASE WHEN EXISTS (SELECT 1 FROM visit v WHERE v.article_id = a.id AND v.user_id = ?) THEN 'Yes' ELSE 'No' END AS visited
+                    FROM article a
+                    WHERE a.display_on_index = 1
+                ''', (user_id,))
+            else:
+                cursor.execute(f'SELECT * FROM {table_name} WHERE user_id = ?', (user_id,))
+            
+            data = cursor.fetchall()
+            if data:
+                has_data = True
+                df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
+                df = df.applymap(clean_string)
+                df.to_excel(writer, sheet_name=table_name, index=False)
+
+        if has_data:
+            writer.close()
+            excel_buffer.seek(0)
+            response = Response(excel_buffer.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response.headers['Content-Disposition'] = f'attachment; filename={username}.xlsx'
+            return response
+        else:
+            return "No data found for the user."
+
+    except Exception as e:
+        return traceback.format_exc()
+    
+@app.route('/export-all-to-excel')
+def export_all_to_excel():
+    try:
+        if 'user_name' not in session or session['user_name'] != 'admin':
+            return "You need to be an admin to export all data."
+
+        db_path = os.path.join(app.instance_path, 'data.db')
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        table_names = ['visit', 'memo', 'feedback', 'rating', 'article']
         users = db.session.query(User.id, User.username).distinct().all()
 
-        # Create a BytesIO object to store the zip file
         zip_buffer = io.BytesIO()
 
-        # Create a ZipFile object
         with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED) as zip_file:
             for user_id, username in users:
-                # Create a BytesIO object to store the Excel file
                 excel_buffer = io.BytesIO()
-
-                # Create an Excel writer
                 writer = pd.ExcelWriter(excel_buffer, engine='openpyxl')
 
-                # Loop through each table and fetch data for the user
                 has_data = False
                 for table_name in table_names:
-                    cursor.execute(f'SELECT * FROM {table_name} WHERE user_id = ?', (user_id,))
+                    if table_name == 'article':
+                        cursor.execute(f'''
+                            SELECT a.*, 
+                                   CASE WHEN EXISTS (SELECT 1 FROM visit v WHERE v.article_id = a.id AND v.user_id = ?) THEN 'Yes' ELSE 'No' END AS visited
+                            FROM article a
+                            WHERE a.display_on_index = 1
+                        ''', (user_id,))
+                    else:
+                        cursor.execute(f'SELECT * FROM {table_name} WHERE user_id = ?', (user_id,))
+                    
                     data = cursor.fetchall()
                     if data:
                         has_data = True
@@ -442,32 +462,19 @@ def export_to_excel():
                         df = df.applymap(clean_string)
                         df.to_excel(writer, sheet_name=table_name, index=False)
 
-                # Close the Excel writer if the user has data
                 if has_data:
                     writer.close()
-
-                    # Add the Excel file to the ZipFile
                     excel_buffer.seek(0)
                     zip_file.writestr(f'{username}.xlsx', excel_buffer.read())
 
-        # Close the ZipFile object
         zip_buffer.seek(0)
-
-        # Prepare the response with appropriate headers
         response = Response(zip_buffer.read(), content_type='application/zip')
         response.headers['Content-Disposition'] = 'attachment; filename=data_batched.zip'
-
         return response
 
     except Exception as e:
         return traceback.format_exc()
-
-
-def clean_string(s):
-    """Removes characters that are not allowed in Excel cells."""
-    if not isinstance(s, str):
-        return s
-    return re.sub(r'[\x00-\x1f]', '', s)
+    
 
 @app.route('/refresh', methods=['GET', 'POST'])
 def refresh():
