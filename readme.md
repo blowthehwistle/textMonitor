@@ -16,7 +16,15 @@ source textmonitorvenv/bin/activate
 visit 테이블에 author_info_clicked 추가(테스트는 안해봄)
 tester 코드 추가
 
+
+### 240711 v1.2
+각 페이지별 오류 수정
+메모 저장 버튼 및 목록으로 돌아가기 버튼 수정
+
+
+
 ### Todo
+- testcode에 별점 기능 추가
 - 뒤로가기 방지
-- 한 article에서 다른 article로 넘어가는 화면 수정
+- 한 article에서 다른 article로 넘어가는 화면 수정 (랜덤 6개)
 - 랜덤 6개 나오는 코드 수정
