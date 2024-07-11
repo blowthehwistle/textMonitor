@@ -7,13 +7,11 @@
     <title>{{article.title}}</title>
     <link rel="stylesheet" type="text/css" href="/static/styles.css">
     <!-- Include article.js -->
+    <script src="/static/preventBack.js"></script>
     <script src="/static/article.js"></script>
     <script src="/static/memo.js"></script>
     <script>
-        const articleId = "{{ article.id }}";  // 각 페이지에 맞는 articleId로 변경
-        let startTime = new Date();
-        let endTime;
-        let authorInfoClicked = false;
+        window.articleId = "{{ article.id }}";  // 각 페이지에 맞는 articleId로 변경
     </script>
 
     <style>

@@ -1,16 +1,16 @@
-// article.js
-
 let dataSent = false;
+let startTime = new Date();
+let endTime;
+let authorInfoClicked = false;
 
 window.addEventListener("beforeunload", function(event) {
     if (!dataSent && !(window.location.href.includes('/end'))) {
         const endTime = new Date();
-        sendData(articleId, startTime, endTime);
-        markAsRead(articleId, authorInfoClicked);
+        sendData(articleId, startTime, endTime, authorInfoClicked);
     }
 });
 
-function sendData(articleId, startTime, endTime) {
+function sendData(articleId, startTime, endTime, authorInfoClicked) {
     const _duration = endTime.getTime() - startTime.getTime();
     const fstartTime = startTime.toISOString(); // ISO 8601 포맷으로 변환
     const fendTime = endTime.toISOString(); // ISO 8601 포맷으로 변환
@@ -19,7 +19,8 @@ function sendData(articleId, startTime, endTime) {
         article_id: articleId,
         start_time: fstartTime,
         end_time: fendTime,
-        duration: _duration
+        duration: _duration,
+        author_info_clicked: authorInfoClicked // author_info_clicked 추가
     };
 
     // 서버에 POST 요청을 보냄
@@ -42,43 +43,20 @@ function sendData(articleId, startTime, endTime) {
     });
 }
 
-function markAsRead(articleId, authorInfoClicked){
-      // Make a POST request to the server to mark the article as read
-      fetch('/mark-as-read', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ articleId: articleId, authorInfoClicked: authorInfoClicked })
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log('Article marked as read.');
-        } else {
-            console.error('Failed to mark article as read.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
-
 // Function to show the question modal
 function showQuestionModal(startTime, articleId, authorInfoClicked) {
     const endTime = new Date();
     // Show the modal
     const modal = document.getElementById('questionModal');
     modal.style.display = 'block';
-    sendData(articleId, startTime, endTime);
+    sendData(articleId, startTime, endTime, authorInfoClicked);
     dataSent = true;
-    markAsRead(articleId,authorInfoClicked);
 }
 
 function closeQuestionModal() {
     const questionModal = document.getElementById('questionModal');
     questionModal.style.display = 'none';
 }
-
 
 function submitAnswer() {
     // Get the user's feedback
@@ -105,8 +83,7 @@ function submitAnswer() {
     .catch(error => {
         console.error('Error:', error);
     });
-}    
-
+}
 
 function openModal() {
     authorInfoClicked = true;

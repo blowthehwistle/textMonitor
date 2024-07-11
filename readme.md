@@ -16,3 +16,7 @@ source textmonitorvenv/bin/activate
 visit 테이블에 author_info_clicked 추가(테스트는 안해봄)
 tester 코드 추가
 
+### Todo
+- 뒤로가기 방지
+- 한 article에서 다른 article로 넘어가는 화면 수정
+- 랜덤 6개 나오는 코드 수정

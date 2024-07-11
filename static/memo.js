@@ -17,19 +17,29 @@ function saveMemo() {
     const memoText = document.getElementById('memoText').value;
     const timestamp = new Date().toISOString(); // Format the timestamp as a string
 
+    const memoData = {
+        articleId: window.articleId, // 전역 변수 사용
+        memo: memoText,
+        timestamp: timestamp, // Include the timestamp as a string
+    };
+
+    console.log('Sending memo data:', memoData); // 전송 데이터 콘솔 출력
+
     // Send a POST request to save the memo for the current article
     fetch('/save-memo', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-            articleId: articleId,
-            memo: memoText,
-            timestamp: timestamp, // Include the timestamp as a string
-        }),
+        body: JSON.stringify(memoData),
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Server response:', response); // 서버 응답 콘솔 출력
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.message === 'Memo saved successfully') {
             // Memo saved successfully, clear the memo text box
@@ -40,6 +50,9 @@ function saveMemo() {
             const memoItem = document.createElement('p');
             memoItem.textContent = memoText;
             memoContainer.appendChild(memoItem);
+
+            // Close the memo modal
+            closeMemo();
         } else {
             console.error('Failed to save memo.');
         }
@@ -48,7 +61,6 @@ function saveMemo() {
         console.error('Error:', error);
     });
 }
-
 
 // Function to display all saved memos
 function displayAllMemos() {
@@ -99,13 +111,7 @@ function displayAllMemos() {
         });
 }
 
-
-
-// Initialize the memo display on page load
-displayAllMemos();
-
 // Initialize the memo display on page load
 window.onload = function () {
     displayAllMemos();
 };
-
