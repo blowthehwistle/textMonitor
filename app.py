@@ -222,7 +222,13 @@ def login_required(f):
 @app.route('/article/<int:article_id>')
 def article(article_id):
     article = Article.query.get_or_404(article_id)
-    return render_template('/article/article.html', article=article)
+    
+    # 현재 기사 제외한 다른 기사 중 최대 6개 랜덤으로 선택
+    other_articles = Article.query.filter(Article.id != article_id).all()
+    random_articles = random.sample(other_articles, min(6, len(other_articles))) if other_articles else []
+
+    return render_template('/article/article.html', article=article, random_articles=random_articles)
+
 
 @app.route('/edit_article', methods=['GET', 'POST'], defaults={'article_id': None})
 @app.route('/edit_article/<int:article_id>', methods=['GET', 'POST'])

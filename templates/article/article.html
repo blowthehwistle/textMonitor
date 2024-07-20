@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{article.title}}</title>
+    <title>{{ article.title }}</title>
     <link rel="stylesheet" type="text/css" href="/static/styles.css">
     <!-- Include article.js -->
     <script src="/static/preventBack.js"></script>
@@ -13,56 +13,14 @@
     <script>
         window.articleId = "{{ article.id }}";  // 각 페이지에 맞는 articleId로 변경
     </script>
-
-    <style>
-        /* Additional styles for longer content */
-        .container {
-            padding: 20px;
-        }
-
-        .article p {
-            margin-bottom: 10px;
-        }
-        /* '읽기 끝내기' 버튼 스타일 */
-        header {
-            width: 100%;
-            position: fixed;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 50px;
-            padding: 0 20px;
-            box-sizing: border-box;
-        }
-
-        /* Pretty buttons in header */
-        header a {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #333;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        header div {
-            display: flex;
-            align-items: center;
-            gap: 10px; /* Space between items */
-        }
-
-        header a:hover {
-            background-color: #555;
-        }
-    </style>
 </head>
 
 <body>
     <header>
         <h1>Internet News</h1>
-        <a href="{{ url_for('end_page') }}">읽기 모두 끝내기</a>
+        <div>
+            <a href="{{ url_for('end_page') }}" class="end-button">읽기 모두 끝내기</a>
+        </div>
     </header>
     <div class="container">
         <h2>{{ article.title }}</h2>
@@ -85,13 +43,30 @@
             <button class="modal-button" onclick="closeModal()">닫기</button>
         </div>
         <!-- Return to List Button -->
-        <button class="back-button" onclick="showQuestionModal(startTime, articleId, authorInfoClicked)">목록으로
-            돌아가기</button>
+        <button class="back-button" onclick="showQuestionModal(startTime, articleId, authorInfoClicked)">목록으로 돌아가기</button>
         <button class="memo-button" onclick="openMemo()">메모</button>
     </div>
+
+    <!-- 랜덤 기사 6개 표시 -->
+    {% if random_articles %}
+    <div class="random-articles narrow-container">
+        <div class="random-articles-grid">
+            {% for random_article in random_articles %}
+            <div class="random-article">
+                <a href="{{ url_for('article', article_id=random_article.id) }}">
+                    <h4>{{ random_article.title }}</h4>
+                </a>
+                <p>
+                    {{ random_article.content[:100] }}... <!-- 일부 내용만 표시 -->
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- 예시: 메모를 표시할 <div> 요소 추가 -->
     <div class="memo-container" id="memoContainer"></div>
-
 
     <div class="modal" id="questionModal">
         <div class="modal-content">
@@ -115,4 +90,3 @@
 
 </body>
 </html>
-
