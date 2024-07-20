@@ -15,7 +15,25 @@ header {
     color: #fff;
     padding: 10px;
     text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
+
+header .end-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #333;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+header .end-button:hover {
+    background-color: #555;
+}
+
 .container {
     max-width: 80%;
     margin: 20px auto;
@@ -23,16 +41,27 @@ header {
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     margin-top: 70px;
-    }
-    
-    /* Article styles */
+}
+
+/* Random Article Container */
+.narrow-container {
+    max-width: 60%; /* 기사 컨테이너보다 좁게 설정 */
+    margin: 20px auto;
+    padding: 10px; /* 패딩을 줄여 좌우 간격을 좁힘 */
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Article styles */
 .article {
-    width: 600px; 
+    width: 100%;
     border: 1px solid #ddd;
     padding: 10px;
-    margin: 10px 0; 
+    margin: 10px 0;
     cursor: pointer;
-    }
+    box-sizing: border-box;
+    background-color: #fff;
+}
 
 .article:hover {
     background-color: #f5f5f5;
@@ -46,9 +75,42 @@ header {
 .article p {
     font-size: 16px;
     margin: 0;
-    text-overflow: ellipsis;  /* 기사의 내용이 너무 길면 '...'로 표시합니다. */
-    white-space: nowrap;  /* 기사의 내용을 한 줄에 표시합니다. */
-    overflow: hidden;  /* 기사의 내용이 너무 길면 잘라냅니다. */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Random Article styles */
+.random-articles {
+    margin-top: 20px;
+}
+
+.random-article {
+    width: calc(33.333% - 20px); /* 너비를 조금 좁게 조정 */
+    height: 100px; /* 높이를 100px로 설정 */
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 5px; /* 마진을 줄여 좌우 간격을 좁힘 */
+    cursor: pointer;
+    box-sizing: border-box;
+    background-color: #fff;
+}
+
+.random-article:hover {
+    background-color: #f5f5f5;
+}
+
+.random-article h4 {
+    font-size: 20px;
+    margin: 0;
+}
+
+.random-article p {
+    font-size: 14px;
+    margin: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 /* Back button */
@@ -79,7 +141,6 @@ header {
     margin-top: 20px;
 }
 
-
 .back-button:hover {
     background-color: #555;
 }
@@ -96,7 +157,7 @@ header {
     z-index: 1000;
 }
 
-.memo-container{
+.memo-container {
     max-width: 865px;
     margin: 20px auto;
     padding: 20px;
@@ -104,7 +165,7 @@ header {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* article */
+/* Modal content */
 .modal h3 {
     margin-top: 0;
 }
@@ -114,19 +175,17 @@ header {
     margin-top: 10px;
 }
 
-/* index.html */
 .visited-article {
-    background-color: #f0f0f0; /* Change the background color for visited articles */
-    font-weight: bold; /* Example style change for visited articles */
+    background-color: #f0f0f0;
+    font-weight: bold;
 }
-
 
 .article-header {
     display: flex;
     justify-content: center;
-  }
-  
-  .article-content {
+}
+
+.article-content {
     display: block;
     max-height: 0;
     overflow: hidden;
@@ -134,7 +193,15 @@ header {
 }
 
 .article:hover .article-content {
-    max-height: 200px; /* Set the maximum height you want */
+    max-height: 200px;
     transition: max-height 0.3s ease-in;
 }
-   
+
+/* Flexbox for random articles */
+.random-articles-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center; /* 가운데 정렬 */
+    padding: 0;
+}

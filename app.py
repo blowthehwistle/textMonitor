@@ -118,6 +118,31 @@ def index():
     return render_template('index.html', articles=articles)
 
 
+@app.route('/api/get_data', methods=['GET'])
+def get_data():
+    try:
+        # 데이터베이스에서 모든 기사 조회
+        articles = Article.query.all()
+        articles_data = []
+
+        # 각 기사를 딕셔너리로 변환하여 리스트에 추가
+        for article in articles:
+            articles_data.append({
+                'id': article.id,
+                'title': article.title,
+                'content': article.content,
+                'author_name': article.author_name,
+                'author_occupation': article.author_occupation,
+                'author_email': article.author_email,
+                'author_description': article.author_description
+            })
+
+        # JSON 형식으로 반환
+        return jsonify({'articles': articles_data}), 200
+    except Exception as e:
+        app.logger.error('Error fetching articles: %s', str(e))
+        return jsonify({'message': 'Error fetching articles: {}'.format(str(e))}), 500
+
 @app.route('/preventback')
 def preventback():
     return render_template('preventback.html')
@@ -197,7 +222,13 @@ def login_required(f):
 @app.route('/article/<int:article_id>')
 def article(article_id):
     article = Article.query.get_or_404(article_id)
-    return render_template('/article/article.html', article=article)
+    
+    # 현재 기사 제외한 다른 기사 중 최대 6개 랜덤으로 선택
+    other_articles = Article.query.filter(Article.id != article_id).all()
+    random_articles = random.sample(other_articles, min(6, len(other_articles))) if other_articles else []
+
+    return render_template('/article/article.html', article=article, random_articles=random_articles)
+
 
 @app.route('/edit_article', methods=['GET', 'POST'], defaults={'article_id': None})
 @app.route('/edit_article/<int:article_id>', methods=['GET', 'POST'])
@@ -275,19 +306,31 @@ def record():
 
 
 # memo ----------------------------------------
+
+
 @app.route('/save-memo', methods=['POST'])
- 
 def save_memo():
-    data = request.get_json()
-    article_id = data['articleId']
-    memo_content = data['memo']
+    try:
+        data = request.get_json()
+        app.logger.info('Received memo data: %s', data)  # Log received data
+        article_id = int(data['articleId'])  # Convert articleId to integer
+        memo_content = data['memo']
+        timestamp_str = data['timestamp']
+        
+        # Convert timestamp string to datetime object
+        timestamp = datetime.fromisoformat(timestamp_str[:-1])
 
-    # Create a new Memo instance and save it to the database
-    memo = Memo(user_id=session['user_id'], article_id=article_id, content=memo_content)
-    db.session.add(memo)
-    db.session.commit()
+        app.logger.info('Parsed memo data: user_id=%s, article_id=%s, content=%s, timestamp=%s', session['user_id'], article_id, memo_content, timestamp)
 
-    return jsonify({'message': 'Memo saved successfully'}), 200
+        # Create a new Memo instance and save it to the database
+        memo = Memo(user_id=session['user_id'], article_id=article_id, content=memo_content, timestamp=timestamp)
+        db.session.add(memo)
+        db.session.commit()
+
+        return jsonify({'message': 'Memo saved successfully'}), 200
+    except Exception as e:
+        app.logger.error('Error saving memo: %s', str(e))
+        return jsonify({'message': 'Error saving memo: {}'.format(str(e))}), 500
 
 
 @app.route('/get-memo', methods=['GET'])
