@@ -6,7 +6,7 @@ let articleId = window.articleId; // Retrieve articleId from global window objec
 let feedbackRedirectUrl = ''; // Global variable to store the URL for redirection
 
 
-function showQuestionModal(event, startTime, articleId, authorInfoClicked, targetUrl) {
+function showQuestionModal(startTime, articleId, authorInfoClicked, targetUrl) {
     const endTime = new Date();
     feedbackRedirectUrl = targetUrl; // Store the URL to redirect after feedback
 
@@ -149,23 +149,3 @@ function closeModal() {
     const modal = document.getElementById('authorModal');
     modal.style.display = 'none';
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const articleLinks = document.querySelectorAll('.random-article a');
-    articleLinks.forEach(link => {
-        link.addEventListener('click', function(event) {
-            event.preventDefault(); // Prevent the default link behavior
-
-            // Get the URL to navigate to
-            const targetUrl = event.target.href;
-
-            // Show the question modal
-            if (!dataSent) {
-                console.log('Opening question modal with articleId:', window.articleId); // Debugging statement
-                showQuestionModal(startTime, window.articleId, authorInfoClicked, targetUrl); // Show the modal with the target URL
-            } else {
-                window.location.href = targetUrl; // Navigate to the article if feedback is already submitted
-            }
-        });
-    });
-});

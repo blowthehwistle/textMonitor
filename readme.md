@@ -28,8 +28,9 @@ tester 코드 추가
 - UI/UX 수정(버튼 스타일, 별점창 등)
 - 엑셀 형식 수정
 - 엑셀에 display_on_index도 반영되게 추가
+- article->article 이동시 feedback창 뜨도록 수정
 
 ### Todo
 - testcode에 별점 기능 추가
 - testcode에서 article->article 했을 때 잘 나오는지
-- 뒤로가기 방지
+- article->article시 undefined로 이동하는 오류
