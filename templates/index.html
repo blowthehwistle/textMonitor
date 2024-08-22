@@ -8,34 +8,12 @@
     <script src="/static/preventBack.js" defer></script>
     <script src="/static/index.js" defer></script>
     <script src="/static/memo.js" defer></script>
-    <script>
-        function confirmRefresh() {
-            if (confirm("정말 초기화를 진행하시겠습니까?")) {
-                window.location.href = "{{ url_for('refresh') }}";
-            }
-        }
-
-        // 수정: 기사 배치 변경
-        function changeLayout() {
-        var container = document.getElementsByClassName('container')[0];
-        container.style.width = '100%';
-
-        var articles = document.getElementsByClassName('article');
-        for (var i = 0; i < articles.length; i++) {
-            articles[i].style.flex = '0 0 calc(50% - 20px)';
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            changeLayout();
-        });
-}
-    </script>
     <style>
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-
 
         header {
             width: 100%;
@@ -70,12 +48,7 @@
             background-color: #555;
         }
 
-        /* Single-line text */
-        .container p {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        /* Random articles container */
         .container {
             display: flex;
             flex-wrap: wrap;
@@ -92,25 +65,34 @@
             padding: 10px;
             margin: 10px;
             cursor: pointer;
-            height: 100px;
+            height: 150px; /* Increase height to show more content */
             overflow: hidden;
         }
 
+        .article h2 {
+            font-size: 20px;
+            margin: 0 0 10px 0;
+        }
+
         .article p {
+            font-size: 14px;
+            margin: 0;
             text-overflow: ellipsis;
             white-space: normal;
             overflow: hidden;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3; /* Show 3 lines of content */
             -webkit-box-orient: vertical;
-
         }
 
+        .article:hover {
+            background-color: #f5f5f5;
+        }
 
     </style>
 </head>
 <body>
-        <!-- Display flash messages -->
+    <!-- Display flash messages -->
     {% with messages = get_flashed_messages() %}
     {% if messages %}
         <div class="alert alert-success">
@@ -118,6 +100,7 @@
         </div>
     {% endif %}
     {% endwith %}
+    
     <header>
         <h1>Internet News</h1>
         <div>
@@ -128,7 +111,6 @@
                 <a href="{{ url_for('edit_article') }}">기사 편집</a>
                 <a href="{{ url_for('login') }}">로그아웃</a>
                 <button onclick="confirmRefresh()">초기화</button>
-    
             {% endif %}
         {% else %}
             <a href="{{ url_for('login') }}">로그인</a>
@@ -136,19 +118,7 @@
         </div>
     </header>
     
-    <!-- 추가: 모든 페이지에서 공통으로 사용할 메모 창 -->
-    <div id="memoModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Memo</h2>
-            <textarea id="memoText" rows="4" cols="50"></textarea>
-            <button id="saveMemo">Save</button>
-        </div>
-    </div>
-    <!-- 메모 창 끝 -->
-
-
-
+    <!-- 기사 목록 -->
     <div class="container">
         {% for article in articles %}
             {% if article is not none %}
@@ -156,13 +126,12 @@
                     <a href="{{ url_for('article', article_id=article.id) }}">
                         <h2>{{ article.title }}</h2>
                     </a>
+                    <p>{{ article.content[:100] }}...</p> <!-- 기사 내용의 첫 줄을 표시 -->
                 </div>
             {% endif %}
         {% endfor %}
     </div>
 
-
-    <div class="memo-container" id="memoContainer" style="width: 1000px;" ></div>
+    <div class="memo-container" id="memoContainer" style="width: 1000px;"></div>
 </body>
 </html>
-

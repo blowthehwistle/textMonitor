@@ -42,6 +42,16 @@ class Article(db.Model):
     display_on_index = db.Column(db.Boolean, default=False)
     ratings = db.relationship('Rating', backref='article', lazy=True)
 
+class ArticleDisplay(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    article_id = db.Column(db.Integer, db.ForeignKey('article.id'), nullable=False)
+    position = db.Column(db.Integer, nullable=False)  # 위치를 저장
+
+    user = db.relationship('User', backref=db.backref('article_displays', lazy=True))
+    article = db.relationship('Article', backref=db.backref('article_displays', lazy=True))
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False, unique=True)
@@ -59,7 +69,6 @@ class Rating(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_rating_user'), nullable=False)
     article_id = db.Column(db.Integer, db.ForeignKey('article.id', name='fk_rating_article'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
-
     user = db.relationship('User', backref=db.backref('ratings', lazy=True))
 
 class Visit(db.Model):
@@ -96,25 +105,32 @@ def handle_403_error(error):
 def home():
     return redirect(url_for('login')) 
 
+
 @app.route('/index')
 def index():
-    # 로그인한 사용자를 가져옵니다.
     user = User.query.get(session['user_id'])
+    
+    # 사용자의 기사 디스플레이 데이터를 가져옴
+    article_displays = ArticleDisplay.query.filter_by(user_id=user.id).order_by(ArticleDisplay.position).all()
 
-    # display_on_index가 True인 모든 기사 ID를 가져옵니다.
-    display_article_ids = [article.id for article in Article.query.filter_by(display_on_index=True).all()]
+    # 만약 사용자가 기사 디스플레이 데이터를 갖고 있지 않다면, 새로운 데이터를 생성
+    if not article_displays:
+        display_articles = Article.query.filter_by(display_on_index=True).all()
+        if len(display_articles) > 6:
+            display_articles = random.sample(display_articles, 6)
 
-    if user.article_order is None or set(user.get_article_order()) != set(display_article_ids):
-        # 기사 ID를 무작위로 섞습니다.
-        random.shuffle(display_article_ids)
-
-        # 섞인 기사 ID를 사용자 모델에 저장합니다.
-        user.set_article_order(display_article_ids)
+        # 새로 생성한 디스플레이 데이터를 저장
+        for idx, article in enumerate(display_articles):
+            new_display = ArticleDisplay(user_id=user.id, article_id=article.id, position=idx)
+            db.session.add(new_display)
         db.session.commit()
+        
+        # 디스플레이 데이터를 다시 불러옴
+        article_displays = ArticleDisplay.query.filter_by(user_id=user.id).order_by(ArticleDisplay.position).all()
 
-    # 사용자의 기사 순서에 따라 기사를 가져옵니다. 이 때, 처음 6개만 가져옵니다.
-    articles = [Article.query.get(id) for id in user.get_article_order()[:6]]
-
+    # 사용자의 기사 디스플레이 순서대로 기사를 가져옴
+    articles = [display.article for display in article_displays]
+    
     return render_template('index.html', articles=articles)
 
 
@@ -218,7 +234,6 @@ def login_required(f):
 
 
 
-
 @app.route('/article/<int:article_id>')
 def article(article_id):
     article = Article.query.get_or_404(article_id)
@@ -256,7 +271,10 @@ def edit_article(article_id):
 @app.route('/record', methods=['POST'])
 def record():   
     data = request.get_json()
-    article_id = data['article_id']
+    article_id = data.get('article_id')
+    if not article_id:
+        return jsonify(error='Missing article_id'), 400
+
     start_time = data['start_time']
     end_time = data['end_time']
     duration = data['duration']
@@ -269,40 +287,6 @@ def record():
     db.session.commit()
 
     return jsonify(message='Visit recorded successfully'), 200
-
-# @app.route('/mark-as-read', methods=['POST'])
- 
-# def mark_as_read():
-#     try:
-#         data = request.get_json()
-#         article_id = data.get('articleId')
-#         new_author_info = data.get('authorInfoClicked')
-
-#         if not article_id:
-#             return jsonify({'message': 'articleId is required'}), 400
-
-#         # Check if the article has already been marked as read.
-#         existing_record = ReadArticle.query.filter_by(user_id=session['user_id'], article_id=article_id).first()
-
-#         if existing_record:
-#             # Compare the existing authorInfoClicked with the new value.
-#             if existing_record.author_info_clicked != new_author_info:
-#                 # Update authorInfoClicked if there is a change.
-#                 existing_record.author_info_clicked = new_author_info
-#                 db.session.commit()
-
-#             return jsonify({'message': 'Article already marked as read'}), 200
-
-#         # If the article is not marked as read, create a new record.
-#         new_read_article = ReadArticle(user_id=session['user_id'], article_id=article_id,
-#                                        author_info_clicked=new_author_info)
-#         db.session.add(new_read_article)
-#         db.session.commit()
-
-#         return jsonify({'message': 'Article marked as read'}), 200
-
-#     except Exception as e:
-#         return jsonify({'message': str(e)}), 500
 
 
 # memo ----------------------------------------
@@ -417,6 +401,7 @@ def clean_string(s):
         return s
     return re.sub(r'[\x00-\x1f]', '', s)
 
+
 @app.route('/export-to-excel')
 def export_to_excel():
     try:
@@ -430,29 +415,87 @@ def export_to_excel():
         user_id = session['user_id']
         username = session['user_name']
 
-        table_names = ['visit', 'memo', 'feedback', 'rating', 'article']
-
         excel_buffer = io.BytesIO()
         writer = pd.ExcelWriter(excel_buffer, engine='openpyxl')
 
         has_data = False
-        for table_name in table_names:
-            if table_name == 'article':
-                cursor.execute(f'''
-                    SELECT a.*, 
-                           CASE WHEN EXISTS (SELECT 1 FROM visit v WHERE v.article_id = a.id AND v.user_id = ?) THEN 'Yes' ELSE 'No' END AS visited
-                    FROM article a
-                    WHERE a.display_on_index = 1
-                ''', (user_id,))
-            else:
-                cursor.execute(f'SELECT * FROM {table_name} WHERE user_id = ?', (user_id,))
-            
-            data = cursor.fetchall()
-            if data:
-                has_data = True
-                df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
-                df = df.applymap(clean_string)
-                df.to_excel(writer, sheet_name=table_name, index=False)
+
+        # Export article sheet with all articles
+        cursor.execute('SELECT * FROM article')
+        all_articles = cursor.fetchall()
+        df_all_articles = pd.DataFrame(all_articles, columns=[description[0] for description in cursor.description])
+        df_all_articles = df_all_articles.applymap(clean_string)
+        df_all_articles.to_excel(writer, sheet_name='article', index=False)
+
+        # Export visit sheet with article titles and adjusted duration
+        cursor.execute(f'''
+            SELECT v.article_id, a.title, v.duration / 1000.0 AS "duration (seconds)"
+            FROM visit v
+            JOIN article a ON v.article_id = a.id
+            WHERE v.user_id = ?
+        ''', (user_id,))
+        visit_data = cursor.fetchall()
+        if visit_data:
+            has_data = True
+            df_visits = pd.DataFrame(visit_data, columns=['article_id', 'title', 'duration (seconds)'])
+            df_visits = df_visits.applymap(clean_string)
+            df_visits.to_excel(writer, sheet_name='visit', index=False)
+
+        # Export rating sheet with article titles
+        cursor.execute(f'''
+            SELECT r.article_id, a.title, r.rating
+            FROM rating r
+            JOIN article a ON r.article_id = a.id
+            WHERE r.user_id = ?
+        ''', (user_id,))
+        rating_data = cursor.fetchall()
+        if rating_data:
+            has_data = True
+            df_ratings = pd.DataFrame(rating_data, columns=['article_id', 'title', 'rating'])
+            df_ratings = df_ratings.applymap(clean_string)
+            df_ratings.to_excel(writer, sheet_name='rating', index=False)
+
+        # Export memo sheet with article titles
+        cursor.execute(f'''
+            SELECT m.*, a.title
+            FROM memo m
+            JOIN article a ON m.article_id = a.id
+            WHERE m.user_id = ?
+        ''', (user_id,))
+        memo_data = cursor.fetchall()
+        if memo_data:
+            has_data = True
+            df_memo = pd.DataFrame(memo_data, columns=[description[0] for description in cursor.description])
+            df_memo = df_memo.applymap(clean_string)
+            df_memo.to_excel(writer, sheet_name='memo', index=False)
+
+        # Export feedback sheet with article titles
+        cursor.execute(f'''
+            SELECT f.*, a.title
+            FROM feedback f
+            JOIN article a ON f.article_id = a.id
+            WHERE f.user_id = ?
+        ''', (user_id,))
+        feedback_data = cursor.fetchall()
+        if feedback_data:
+            has_data = True
+            df_feedback = pd.DataFrame(feedback_data, columns=[description[0] for description in cursor.description])
+            df_feedback = df_feedback.applymap(clean_string)
+            df_feedback.to_excel(writer, sheet_name='feedback', index=False)
+
+        # Export ArticleDisplay data
+        cursor.execute(f'''
+            SELECT ad.*, a.title
+            FROM article_display ad
+            JOIN article a ON ad.article_id = a.id
+            WHERE ad.user_id = ?
+        ''', (user_id,))
+        article_display_data = cursor.fetchall()
+        if article_display_data:
+            has_data = True
+            df_article_display = pd.DataFrame(article_display_data, columns=[description[0] for description in cursor.description])
+            df_article_display = df_article_display.applymap(clean_string)
+            df_article_display.to_excel(writer, sheet_name='ArticleDisplay', index=False)
 
         if has_data:
             writer.close()
@@ -465,7 +508,7 @@ def export_to_excel():
 
     except Exception as e:
         return traceback.format_exc()
-    
+
 @app.route('/export-all-to-excel')
 def export_all_to_excel():
     try:
@@ -487,32 +530,94 @@ def export_all_to_excel():
                 writer = pd.ExcelWriter(excel_buffer, engine='openpyxl')
 
                 has_data = False
-                for table_name in table_names:
-                    if table_name == 'article':
-                        cursor.execute(f'''
-                            SELECT a.*, 
-                                   CASE WHEN EXISTS (SELECT 1 FROM visit v WHERE v.article_id = a.id AND v.user_id = ?) THEN 'Yes' ELSE 'No' END AS visited
-                            FROM article a
-                            WHERE a.display_on_index = 1
-                        ''', (user_id,))
-                    else:
-                        cursor.execute(f'SELECT * FROM {table_name} WHERE user_id = ?', (user_id,))
-                    
-                    data = cursor.fetchall()
-                    if data:
-                        has_data = True
-                        df = pd.DataFrame(data, columns=[description[0] for description in cursor.description])
-                        df = df.applymap(clean_string)
-                        df.to_excel(writer, sheet_name=table_name, index=False)
 
+                # Export article sheet with all articles
+                cursor.execute('SELECT * FROM article')
+                all_articles = cursor.fetchall()
+                df_all_articles = pd.DataFrame(all_articles, columns=[description[0] for description in cursor.description])
+                df_all_articles = df_all_articles.applymap(clean_string)
+                df_all_articles.to_excel(writer, sheet_name='article', index=False)
+
+                # Export visit sheet with article titles and adjusted duration
+                cursor.execute(f'''
+                    SELECT v.article_id, a.title, v.duration / 1000.0 AS "duration (seconds)"
+                    FROM visit v
+                    JOIN article a ON v.article_id = a.id
+                    WHERE v.user_id = ?
+                ''', (user_id,))
+                visit_data = cursor.fetchall()
+                if visit_data:
+                    has_data = True
+                    df_visits = pd.DataFrame(visit_data, columns=['article_id', 'title', 'duration (seconds)'])
+                    df_visits = df_visits.applymap(clean_string)
+                    df_visits.to_excel(writer, sheet_name='visit', index=False)
+
+                # Export rating sheet with article titles
+                cursor.execute(f'''
+                    SELECT r.article_id, a.title, r.rating
+                    FROM rating r
+                    JOIN article a ON r.article_id = a.id
+                    WHERE r.user_id = ?
+                ''', (user_id,))
+                rating_data = cursor.fetchall()
+                if rating_data:
+                    has_data = True
+                    df_ratings = pd.DataFrame(rating_data, columns=['article_id', 'title', 'rating'])
+                    df_ratings = df_ratings.applymap(clean_string)
+                    df_ratings.to_excel(writer, sheet_name='rating', index=False)
+
+                # Export memo sheet with article titles
+                cursor.execute(f'''
+                    SELECT m.*, a.title
+                    FROM memo m
+                    JOIN article a ON m.article_id = a.id
+                    WHERE m.user_id = ?
+                ''', (user_id,))
+                memo_data = cursor.fetchall()
+                if memo_data:
+                    has_data = True
+                    df_memo = pd.DataFrame(memo_data, columns=[description[0] for description in cursor.description])
+                    df_memo = df_memo.applymap(clean_string)
+                    df_memo.to_excel(writer, sheet_name='memo', index=False)
+
+                # Export feedback sheet with article titles
+                cursor.execute(f'''
+                    SELECT f.*, a.title
+                    FROM feedback f
+                    JOIN article a ON f.article_id = a.id
+                    WHERE f.user_id = ?
+                ''', (user_id,))
+                feedback_data = cursor.fetchall()
+                if feedback_data:
+                    has_data = True
+                    df_feedback = pd.DataFrame(feedback_data, columns=[description[0] for description in cursor.description])
+                    df_feedback = df_feedback.applymap(clean_string)
+                    df_feedback.to_excel(writer, sheet_name='feedback', index=False)
+
+                # Export ArticleDisplay data
+                cursor.execute(f'''
+                    SELECT ad.*, a.title
+                    FROM ArticleDisplay ad
+                    JOIN article a ON ad.article_id = a.id
+                    WHERE ad.user_id = ?
+                ''', (user_id,))
+                article_display_data = cursor.fetchall()
+                if article_display_data:
+                    has_data = True
+                    df_article_display = pd.DataFrame(article_display_data, columns=[description[0] for description in cursor.description])
+                    df_article_display = df_article_display.applymap(clean_string)
+                    df_article_display.to_excel(writer, sheet_name='ArticleDisplay', index=False)
+
+                # Continue with the export-all-to-excel function
                 if has_data:
                     writer.close()
                     excel_buffer.seek(0)
                     zip_file.writestr(f'{username}.xlsx', excel_buffer.read())
 
+
         zip_buffer.seek(0)
         response = Response(zip_buffer.read(), content_type='application/zip')
-        response.headers['Content-Disposition'] = 'attachment; filename=data_batched.zip'
+        response.headers['Content-Disposition'] = 'attachment; filename=all_data.zip'
         return response
 
     except Exception as e:
@@ -558,24 +663,41 @@ def refresh():
     except Exception as e:
         return str(e)
 
+
 @app.route('/add_article', methods=['GET', 'POST'])
 def add_article():
     if request.method == 'POST':
         title = request.form.get('title')
         content = request.form.get('content')
+        author_name = request.form.get('author_name')
+        author_occupation = request.form.get('author_occupation')
+        author_email = request.form.get('author_email')
+        author_description = request.form.get('author_description')
+        display_on_index = 'display_on_index' in request.form  # Checkbox for display on index
 
         if not title or not content:
-            flash('Title and Content are required!')
-            return render_template('add_article.html')
+            flash('Title and content are required.', 'error')
+            return redirect(url_for('add_article'))
 
-        article = Article(title=title, content=content)
-        db.session.add(article)
+        # Create a new Article instance
+        new_article = Article(
+            title=title,
+            content=content,
+            author_name=author_name,
+            author_occupation=author_occupation,
+            author_email=author_email,
+            author_description=author_description,
+            display_on_index=display_on_index
+        )
+        
+        # Add to the session and commit to the database
+        db.session.add(new_article)
         db.session.commit()
 
-        return redirect(url_for('edit_article'))
-
-    return render_template('add_article.html')
-
+        flash('Article added successfully!', 'success')
+        return redirect(url_for('index'))
+    
+    return render_template('/article/add_article.html')
 
 @app.route('/delete_article/<int:article_id>', methods=['POST'])
 def delete_article(article_id):

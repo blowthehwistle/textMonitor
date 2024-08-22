@@ -35,15 +35,15 @@
         <div class="modal" id="authorModal">
             <h3>Author Information</h3>
             <p>
-                <strong>Name:</strong> {{ article.author_name }}<br>
-                <strong>Occupation:</strong> {{ article.author_occupation }}<br>
-                <strong>Email:</strong> {{ article.author_email }}<br>
-                <strong>Description:</strong> {{ article.author_description }}<br>
+                <strong>이름:</strong> {{ article.author_name }}<br>
+                <strong>직업:</strong> {{ article.author_occupation }}<br>
+                <strong>이메일:</strong> {{ article.author_email }}<br>
+                <strong>저자 소개:</strong> {{ article.author_description }}<br>
             </p>
             <button class="modal-button" onclick="closeModal()">닫기</button>
         </div>
         <!-- Return to List Button -->
-        <button class="back-button" onclick="showQuestionModal(startTime, articleId, authorInfoClicked)">목록으로 돌아가기</button>
+        <button class="back-button" onclick="showQuestionModal(startTime, {{article.id}}, authorInfoClicked, '{{ url_for('index') }}')">목록으로 돌아가기</button>
         <button class="memo-button" onclick="openMemo()">메모</button>
     </div>
 
@@ -53,7 +53,7 @@
         <div class="random-articles-grid">
             {% for random_article in random_articles %}
             <div class="random-article">
-                <a href="{{ url_for('article', article_id=random_article.id) }}">
+                <a href="#" onclick="showQuestionModal(startTime, {{article.id}}, authorInfoClicked, '{{ url_for('article', article_id=random_article.id) }}')">
                     <h4>{{ random_article.title }}</h4>
                 </a>
                 <p>
@@ -85,6 +85,18 @@
             <h3>메모</h3>
             <textarea id="memoText" rows="4" cols="50" placeholder="메모를 입력하세요..."></textarea>
             <button onclick="saveMemo()">저장</button>
+        </div>
+    </div>
+
+    
+    <!-- Question Modal -->
+    <div class="modal" id="questionModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeQuestionModal()">&times;</span>
+            <h3>Question:</h3>
+            <p>글을 읽고 더 알고 싶은 정보는?(없으면 '없음' 작성):</p>
+            <textarea id="userAnswer" rows="4" cols="50"></textarea>
+            <button onclick="submitAnswer()">Submit</button>
         </div>
     </div>
 
