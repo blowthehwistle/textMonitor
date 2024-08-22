@@ -33,4 +33,4 @@ tester 코드 추가
 ### Todo
 - testcode에 별점 기능 추가
 - testcode에서 article->article 했을 때 잘 나오는지
-- article->article시 undefined로 이동하는 오류
+- 전체 테스트 필요(값 잘 전달되는지 등)
