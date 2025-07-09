@@ -1,5 +1,12 @@
+# Flask
 Flask==2.3.3
 Flask_SQLAlchemy==3.1.1
 Flask-Migrate==4.0.5
+
+# Data handling
 pandas==2.2.2
+numpy<2          # ✅ pandas 2.2.2는 numpy 1.x까지는 안정 작동. 2.1.1에서 에러 발생 가능
 openpyxl==3.1.2
+pyarrow>=14.0,<15.0  # ✅ pandas 내부 의존성에서 사용되므로 명시
+
+# 기타 필요 시 추가
