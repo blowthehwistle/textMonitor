@@ -20,38 +20,39 @@ textMonitor는 python Flask 기반의 웹 애플리케이션으로, 사용자가
 
 1. 프로젝트 클론
 
+```bash
 git clone https://github.com/blowthehwistle/textMonitor.git
 cd textMonitor
-
+```
 2. 가상환경 생성 및 활성화
 
+```bash
 python3 -m venv venv
 source venv/bin/activate  # (Windows는 .\venv\Scripts\activate)
+```
 
 3. 패키지 설치
 
+```bash
 pip install -r requirements.txt
+```
 
 4. 데이터베이스 초기화 (최초 1회)
 
+```bash
 flask db init
 flask db migrate
 flask db upgrade
+```
 
 또는 이미 설정된 DB가 있다면 생략 가능
 
-5. app.py 수정 (필수)
 
-app.py 마지막 부분에서 app.run()을 아래처럼 수정하세요:
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002, debug=True)
-
-6. 서버 실행
+5. 서버 실행
 
 python3 app.py
 
-7. 브라우저에서 확인
+6. 브라우저에서 확인
 
 웹 브라우저에서 다음 주소로 접속:
 
