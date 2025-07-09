@@ -14,13 +14,17 @@ tempCodeRunnerFile.py
 # PyCharm
 .idea/
 
-# 환경
+# 가상환경 & 환경 파일
 .env
 venv/
 textmonitorvenv/
 
-# 데이터
-*.sqlite3
-*.db
+# 데이터 파일 무시
 output.xlsx
 *.bak
+
+# 📌 다른 경로에 생기는 db 파일은 무시하지만,
+#     Flask가 사용하는 instance/data.db는 추적 가능하게 유지
+*.sqlite3
+*.db
+!instance/*.db
