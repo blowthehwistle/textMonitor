@@ -74,10 +74,9 @@ source venv/bin/activate  # (Windows는 .\venv\Scripts\activate)
 pip install -r requirements.txt
 ```
 
-4. 데이터베이스 초기화 (최초 1회)
+4. 데이터베이스 업데이트
 
 ```bash
-flask db init
 flask db migrate
 flask db upgrade
 ```
