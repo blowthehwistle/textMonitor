@@ -103,18 +103,18 @@ http://localhost:5000
 ## 📊 주요 라우트 요약
 
 URL	설명
-/	로그인 페이지로 리디렉션
-/index	기사 피드 페이지 (무작위 노출)
-/article/<id>	특정 기사 보기
-/edit_article	관리자 전용 편집 페이지
-/add_article	기사 추가 페이지
-/record	방문 정보 저장 (AJAX)
-/save-memo	메모 저장 (AJAX)
-/submit-feedback	피드백 제출
-/rate	기사 평가 저장
-/export-to-excel	사용자 개인 데이터 엑셀 다운로드
-/export-all-to-excel	관리자 전용 전체 사용자 데이터 압축 다운로드
-/refresh	DB 초기화 (관리자 전용)
+- /	로그인 페이지로 리디렉션
+- /index	기사 피드 페이지 (무작위 노출)
+- /article/<id>	특정 기사 보기
+- /edit_article	관리자 전용 편집 페이지
+- /add_article	기사 추가 페이지
+- /record	방문 정보 저장 (AJAX)
+- /save-memo	메모 저장 (AJAX)
+- /submit-feedback	피드백 제출
+- /rate	기사 평가 저장
+- /export-to-excel	사용자 개인 데이터 엑셀 다운로드
+- /export-all-to-excel	관리자 전용 전체 사용자 데이터 압축 다운로드
+- /refresh	DB 초기화 (관리자 전용)
 
 
 ⸻
