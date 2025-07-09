@@ -2,6 +2,58 @@ let dataSent = false;
 let startTime = new Date();
 let endTime;
 let authorInfoClicked = false;
+let articleId = window.articleId; // Retrieve articleId from global window object
+let feedbackRedirectUrl = ''; // Global variable to store the URL for redirection
+
+
+function showQuestionModal(startTime, articleId, authorInfoClicked, targetUrl) {
+    const endTime = new Date();
+    feedbackRedirectUrl = targetUrl; // Store the URL to redirect after feedback
+
+    console.log("Feedback Redirect URL:", feedbackRedirectUrl);
+    console.log("Article ID:", articleId);
+    console.log("Start Time:", startTime);
+    console.log("Author Info Clicked:", authorInfoClicked);
+
+    // Show the modal
+    const modal = document.getElementById('questionModal');
+    modal.style.display = 'block';
+    sendData(articleId, startTime, endTime, authorInfoClicked);
+    dataSent = true;
+}
+
+function submitAnswer() {
+    // Get the user's feedback
+    const feedback = document.getElementById('userAnswer').value;
+
+    // Create a data object to send to the server
+    const data = {
+        articleId: window.articleId, // Ensure this is the correct variable
+        feedback: feedback
+    };
+
+    // Send a POST request to the server
+    fetch('/submit-feedback', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log("Redirecting..."); // Log before redirecting
+        console.log("Redirect URL:", feedbackRedirectUrl); // Log the redirect URL
+        window.location.href = feedbackRedirectUrl; // Redirect to the stored URL
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+function closeQuestionModal() {
+    const questionModal = document.getElementById('questionModal');
+    questionModal.style.display = 'none';
+}
 
 window.addEventListener("beforeunload", function(event) {
     if (!dataSent && !(window.location.href.includes('/end'))) {
@@ -23,6 +75,8 @@ function sendData(articleId, startTime, endTime, authorInfoClicked) {
         author_info_clicked: authorInfoClicked // author_info_clicked 추가
     };
 
+    console.log('Sending visitData:', visitData); // Debugging statement
+
     // 서버에 POST 요청을 보냄
     fetch('/record', {
         method: 'POST',
@@ -35,55 +89,52 @@ function sendData(articleId, startTime, endTime, authorInfoClicked) {
         if (response.ok) {
             console.log('Visit recorded successfully.');
         } else {
-            console.error('Failed to record visit.');
+            return response.json().then(errorData => {
+                console.error('Failed to record visit. Status:', response.status, 'Response:', errorData);
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
     });
 }
+// // Function to show the question modal
+// function showQuestionModal(startTime, articleId, authorInfoClicked) {
+//     const endTime = new Date();
+//     // Show the modal
+//     const modal = document.getElementById('questionModal');
+//     modal.style.display = 'block';
+//     sendData(articleId, startTime, endTime, authorInfoClicked);
+//     dataSent = true;
+// }
 
-// Function to show the question modal
-function showQuestionModal(startTime, articleId, authorInfoClicked) {
-    const endTime = new Date();
-    // Show the modal
-    const modal = document.getElementById('questionModal');
-    modal.style.display = 'block';
-    sendData(articleId, startTime, endTime, authorInfoClicked);
-    dataSent = true;
-}
 
-function closeQuestionModal() {
-    const questionModal = document.getElementById('questionModal');
-    questionModal.style.display = 'none';
-}
+// function submitAnswer() {
+//     // Get the user's feedback
+//     const feedback = document.getElementById('userAnswer').value;
 
-function submitAnswer() {
-    // Get the user's feedback
-    const feedback = document.getElementById('userAnswer').value;
+//     // Create a data object to send to the server
+//     const data = {
+//         articleId: articleId, // Assuming articleId is defined globally
+//         feedback: feedback
+//     };
 
-    // Create a data object to send to the server
-    const data = {
-        articleId: articleId, // Assuming articleId is defined globally
-        feedback: feedback
-    };
-
-    // Send a POST request to the server
-    fetch('/submit-feedback', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(result => {
-        console.log("Redirecting..."); // Log before redirecting
-        window.location.href = '/index'; // Redirect to index.html
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
+//     // Send a POST request to the server
+//     fetch('/submit-feedback', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify(data)
+//     })
+//     .then(result => {
+//         console.log("Redirecting..."); // Log before redirecting
+//         window.location.href = '/index'; // Redirect to index.html
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//     });
+// }
 
 function openModal() {
     authorInfoClicked = true;
