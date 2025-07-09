@@ -4,6 +4,43 @@ textMonitor는 python Flask 기반의 웹 애플리케이션으로, 사용자가
 
 ⸻
 
+## 📁 프로젝트 폴더 구조
+
+```
+textMonitor/
+├── app.py                      # 메인 Flask 앱 실행 파일
+├── README.md                   # 프로젝트 설명 문서
+├── requirements.txt            # 필요한 Python 패키지 목록
+├── .gitignore                  # Git 무시 설정
+│
+├── migrations/                 # Flask-Migrate DB 마이그레이션 폴더
+│   └── versions/               # 마이그레이션 히스토리
+│
+├── static/                     # 정적 리소스 (CSS, JS)
+│   ├── article.js
+│   ├── js/index.js
+│   ├── preventBack.js
+│   └── styles.css
+│
+├── templates/                  # HTML 템플릿 (Jinja2)
+│   ├── article/
+│   │   ├── add_article.html
+│   │   ├── article.html
+│   │   └── edit_article.html
+│   ├── base.html
+│   ├── end.html
+│   ├── index.html
+│   ├── login.html
+│   ├── preventBack.html
+│   └── register.html
+│
+├── tester/                     # 테스트 코드 폴더
+│   └── tester.py
+```
+
+⸻
+
+
 ## 🧭 주요 기능
 	•	회원가입 및 로그인 기능
 	•	무작위 순서로 기사 노출
@@ -50,7 +87,9 @@ flask db upgrade
 
 5. 서버 실행
 
+```bash
 python3 app.py
+```
 
 6. 브라우저에서 확인
 
@@ -61,17 +100,6 @@ http://localhost:5000
 
 ⸻
 
-## 🧪 사용 시나리오 예시
-	1.	/register에서 회원가입 후 로그인
-	2.	/index로 이동하면 무작위 기사 목록 표시
-	3.	각 기사 클릭 → 읽기, 메모 저장, 피드백 제출 가능
-	4.	마지막에 /end 페이지에서 모든 기록 확인
-	5.	/export-to-excel: 본인의 방문, 평가, 메모 데이터를 엑셀로 다운로드
-	6.	관리자 계정으로 로그인 시:
-	•	/edit_article, /add_article 접근 가능
-	•	/export-all-to-excel로 모든 사용자 데이터 ZIP 다운로드 가능
-
-⸻
 
 ## 📊 주요 라우트 요약
 
