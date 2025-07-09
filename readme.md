@@ -11,18 +11,18 @@ textMonitor/
 ├── app.py                      # 메인 Flask 앱 실행 파일
 ├── README.md                   # 프로젝트 설명 문서
 ├── requirements.txt            # 필요한 Python 패키지 목록
-├── .gitignore                  # Git 무시 설정
+├── .gitignore                  
 │
 ├── migrations/                 # Flask-Migrate DB 마이그레이션 폴더
 │   └── versions/               # 마이그레이션 히스토리
 │
-├── static/                     # 정적 리소스 (CSS, JS)
+├── static/                     # static resources (CSS, JS)
 │   ├── article.js
 │   ├── js/index.js
 │   ├── preventBack.js
 │   └── styles.css
 │
-├── templates/                  # HTML 템플릿 (Jinja2)
+├── templates/                  # HTML Template (Jinja2)
 │   ├── article/
 │   │   ├── add_article.html
 │   │   ├── article.html
@@ -42,12 +42,12 @@ textMonitor/
 
 
 ## 🧭 주요 기능
-	•	회원가입 및 로그인 기능
-	•	무작위 순서로 기사 노출
-	•	기사 조회 및 방문 시간 기록
-	•	기사별 메모 작성 기능
-	•	기사 평가 및 피드백 제출 기능
-	•	개인 또는 전체 사용자 데이터 엑셀 내보내기 기능
+	•	회원가입 및 로그인
+	•	임의의 순서로 기사 노출
+	•	기사 조회 및 머무른 시간 기록
+	•	기사별 메모 작성
+	•	기사 평가 및 피드백 제출 
+	•	개인 또는 전체 사용자 데이터 엑셀 추출
 	•	관리자 전용: 기사 추가/수정/삭제 인터페이스
 	•	초기화 기능 (DB 초기화 및 결과파일 생성)
 
@@ -121,14 +121,15 @@ URL	설명
 ⸻
 
 ## 🛠 기술 스택
-	•	백엔드: Python, Flask
-	•	프론트엔드: Jinja2, HTML/CSS
-	•	데이터베이스: SQLite, SQLAlchemy
+	•	Backend: Python, Flask
+	•	Frontend: Jinja2, HTML/CSS
+	•	Database: SQLite, SQLAlchemy
 	•	엑셀 처리: pandas, openpyxl, zipfile
 
 ⸻
 
 ## 🔐 관리자 계정 안내
+
 
 관리자 권한으로 전체 데이터를 다운로드하거나 기사를 관리하려면, 사용자명 admin 계정을 직접 DB에 생성하거나 수동으로 가입 후 권한 부여 필요
 
